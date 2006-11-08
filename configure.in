@@ -1,0 +1,116 @@
+################################################################################
+#
+# configure.in for libthinkfinger, process with autoconf to create a configure
+# script.
+#
+# Copyright (C) 2006 Novell, Inc.
+# Author: Timo Hoenig <thoenig@suse.de>, <thoenig@nouse.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+################################################################################
+
+# Initialize auto{conf,make}
+AC_PREREQ(2.59)
+AC_INIT(libthinkfinger, 0.1, thoenig@suse.de, libthinkfinger)
+AM_INIT_AUTOMAKE
+AC_CONFIG_SRCDIR([libthinkfinger/libthinkfinger.c])
+
+# Checks for required programs
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LIBTOOL
+
+# Checks for header files.
+AC_CHECK_HEADERS([unistd.h string.h stdio.h stdlib.h errno.h usb.h])
+
+# Check for libusb
+PKG_CHECK_MODULES(libusb, libusb >= 0.1.12)
+
+# Check for Doxygen
+AC_CHECK_PROG(DOXYGEN, [doxygen], [doxygen], [])
+
+# Find out prefix
+PREFIX=
+if test "x$prefix" = "xNONE" ; then
+	PREFIX=$ac_default_prefix
+else
+	PREFIX=$prefix
+fi
+prefix=$PREFIX
+
+# Find out exec_prefix
+EXEC_PREFIX=
+if test "x$exec_prefix" = xNONE ; then
+	EXEC_PREFIX=$prefix
+else
+	EXEC_PREFIX=$exec_prefix
+fi
+exec_prefix=$EXEC_PREFIX
+
+# AC_SUBST PREFIX, LIBDIR and BINDIR
+PREFIX_TMP="$prefix"
+PREFIX=`eval echo $PREFIX_TMP`
+AC_SUBST(PREFIX)
+
+LIBDIR_TMP="$libdir"
+LIBDIR=`eval echo $LIBDIR_TMP`
+AC_SUBST(LIBDIR)
+
+BINDIR_TMP="$bindir"
+BINDIR=`eval echo $BINDIR_TMP`
+AC_SUBST(BINDIR)
+
+# AC_SUBST CFLAGS
+CFLAGS="$CFLAGS -Wall"
+CFLAGS="$CFLAGS -fno-common"
+CFLAGS="$CFLAGS -fPIC"
+CFLAGS="$CFLAGS -Wchar-subscripts"
+CFLAGS="$CFLAGS -Wmissing-declarations" 
+CFLAGS="$CFLAGS -Wmissing-prototypes"
+CFLAGS="$CFLAGS -Wnested-externs"
+CFLAGS="$CFLAGS -Wpointer-arith"
+CFLAGS="$CFLAGS -Wcast-align"
+CFLAGS="$CFLAGS -Wsign-compare"
+CFLAGS="$CFLAGS -Wdeclaration-after-statement"
+AC_SUBST(CFLAGS)
+	
+# AC_SUBST USB_{LIBS,CFLAGS}
+AC_SUBST([USB_LIBS])
+AC_SUBST([USB_CFLAGS])
+
+# AC_CONFIG_FILES
+AC_CONFIG_FILES([Makefile
+		libthinkfinger/Makefile
+		libthinkfinger/thinkfinger.pc
+		tf-tool/Makefile
+		docs/Makefile
+		docs/autodocs/Makefile
+])
+
+# Configuration
+echo "
+ libthinkfinger $VERSION
+ ==================
+
+ + prefix:	${PREFIX}
+ + libdir:	${LIBDIR}
+ + bindir:	${BINDIR}
+
+ + cflags:	${CFLAGS}
+"
+
+# AC_OUTPUT
+AC_OUTPUT

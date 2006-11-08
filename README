@@ -1,0 +1,15 @@
+ThinkFinger
+===========
+
+ThinkFinger is a driver for the SGS Thomson Microelectronics fingerprint reader
+found in most IBM/Lenovo ThinkPads.
+
+Porject Page
+============
+
+* http://www.sourceforge.net/projects/thinkfinger
+
+SVN
+===
+
+* svn co https://svn.sourceforge.net/svnroot/thinkfinger

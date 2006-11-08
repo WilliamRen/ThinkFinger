@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libthinkfinger
+Description: ThinkFinger is a driver for the SGS Thomson Microelectronics fingerprint reader found in most IBM/Lenovo ThinkPads.
+Version: @VERSION@
+Requires: libusb
+
+Libs: -L${libdir} -lthinkfinger
+Cflags: -I${includedir}
