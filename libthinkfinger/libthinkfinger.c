@@ -560,6 +560,12 @@ libthinkfinger_init(void)
 	tf->usb_handle = NULL;
 	tf->usb_handle = usb_open (usb_dev);
 	if (tf->usb_handle == NULL) {
+		/* could not open USB device */
+		printf ("Error: Could not open USB device.\n");
+		goto outfree;
+	}
+
+	if (usb_claim_interface (tf->usb_handle, 0) < 0) {
 		/* could not claim USB device */
 		printf ("Error: Could not claim USB device.\n");
 		goto outfree;
@@ -597,8 +603,10 @@ libthinkfinger_free (libthinkfinger *tf)
 		goto out;
 	}
 
-	if (tf->usb_handle)
+	if (tf->usb_handle) {
+		usb_release_interface (tf->usb_handle, 0);
 		usb_close (tf->usb_handle);
+	}
 
 	if (tf->fd)
 		close (tf->fd);
