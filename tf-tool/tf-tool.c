@@ -23,80 +23,164 @@
   *
   */
 
+#include <libgen.h>
 #include <libthinkfinger.h>
 
-static void callback (libthinkfinger_state state, void *data)
+#define MODE_ACQUIRE 1
+#define MODE_VERIFY  2
+
+#define BIR_FILE "/tmp/test.bir"
+
+static void
+callback (libthinkfinger_state state, void *data)
 {
-	char *str = "unknown";
+	char *str;
 
-	if (state == TF_STATE_SWIPE_0)
-		str = "TF_STATE_SWIPE_0";
-	else if (state == TF_STATE_SWIPE_1)
-		str = "TF_STATE_SWIPE_1";
-	else if (state == TF_STATE_SWIPE_2)
-		str = "TF_STATE_SWIPE_2";
-	else if (state == TF_STATE_SWIPE_SUCCESS)
-		str = "TF_STATE_SWIPE_SUCCESS";
-	else if (state == TF_STATE_SWIPE_FAILED)
-		str = "TF_STATE_SWIPE_FAILED";
-	else if (state == TF_STATE_ENROLL_SUCCESS)
-		str = "TF_STATE_ENROLL_SUCCESS";
-	else if (state == TF_STATE_ACQUIRE_SUCCESS)
-		str = "TF_STATE_ACQUIRE_SUCCESS";
-	else if (state == TF_STATE_ACQUIRE_FAILED)
-		str = "TF_STATE_ACQUIRE_FAILED";
-	else if (state == TF_STATE_VERIFY_SUCCESS)
-		str = "TF_STATE_VERIFY_SUCCESS";
-	else if (state == TF_STATE_VERIFY_FAILED)
-		str = "TF_STATE_VERIFY_FAILED";
-	else if (state == TF_STATE_COMM_FAILED)
-		str = "TF_STATE_COMM_FAILED";
-	else if (state == TF_STATE_INITIAL)
-		str = "TF_STATE_INITIAL";
+	if ((*(int*) data) == 1) {
+		str = "unknown";
 
-	printf ("tf-tool: %s (%i)\n", str, state);
-}
+		if (state == TF_STATE_SWIPE_0)
+			str = "TF_STATE_SWIPE_0";
+		else if (state == TF_STATE_SWIPE_1)
+			str = "TF_STATE_SWIPE_1";
+		else if (state == TF_STATE_SWIPE_2)
+			str = "TF_STATE_SWIPE_2";
+		else if (state == TF_STATE_SWIPE_SUCCESS)
+			str = "TF_STATE_SWIPE_SUCCESS";
+		else if (state == TF_STATE_SWIPE_FAILED)
+			str = "TF_STATE_SWIPE_FAILED";
+		else if (state == TF_STATE_ENROLL_SUCCESS)
+			str = "TF_STATE_ENROLL_SUCCESS";
+		else if (state == TF_STATE_ACQUIRE_SUCCESS)
+			str = "TF_STATE_ACQUIRE_SUCCESS";
+		else if (state == TF_STATE_ACQUIRE_FAILED)
+			str = "TF_STATE_ACQUIRE_FAILED";
+		else if (state == TF_STATE_VERIFY_SUCCESS)
+			str = "TF_STATE_VERIFY_SUCCESS";
+		else if (state == TF_STATE_VERIFY_FAILED)
+			str = "TF_STATE_VERIFY_FAILED";
+		else if (state == TF_STATE_COMM_FAILED)
+			str = "TF_STATE_COMM_FAILED";
+		else if (state == TF_STATE_INITIAL)
+			str = "TF_STATE_INITIAL";
 
-int main ()
-{
-	int i = 0;
-	int t;
-	libthinkfinger *tf = NULL;
-
-	tf = libthinkfinger_init ();
- 
-	printf ("tf-tool: intialization... ");
-	if (tf) {
-		printf ("ok\n");
-	} else {
-		printf ("not ok\n");
-		return 1;
+		printf ("tf-tool: %s (%i)\n", str, state);
 	}
 
-	printf ("tf-tool: setting file... %sok\n",
-		 libthinkfinger_set_file (tf, "/tmp/testbir") ? "not " : "");
-	printf ("tf-tool: setting callback... %sok\n",
-		 libthinkfinger_set_callback (tf, callback, &i) ? "not " : "");
+	if (state == TF_STATE_SWIPE_0 || state == TF_STATE_SWIPE_1 ||
+	    state == TF_STATE_SWIPE_2)
+		printf ("Please swipe your finger...\n");
 
-	printf ("tf-tool: acquire fingerprint...\n");
-	t = libthinkfinger_acquire (tf);
-	if (t == TF_STATE_ACQUIRE_SUCCESS)
-		printf ("acquire successful\n");
-	else if (t == TF_STATE_ACQUIRE_FAILED)
-		printf ("acquire failed\n");
-	else if (t == TF_RESULT_COMM_FAILED)
+	if (state == TF_STATE_ACQUIRE_SUCCESS)
+		printf ("Writing bir file...\n");
+}
+
+static void
+usage (char* name, int error_code)
+{
+	printf ("Usage: %s [--acquire | --verify] [--verbose]\n", basename (name));
+	exit (error_code);
+}
+
+static int
+acquire (libthinkfinger *tf, int verbose)
+{
+ 	int tf_state;
+	int ret = 0;
+
+	tf = libthinkfinger_init ();
+	printf ("tf-tool: intialization: %s\n", tf ? "success" : "failed");
+
+	if (tf == NULL)
+		return 1;
+
+	libthinkfinger_set_file (tf, BIR_FILE);
+	libthinkfinger_set_callback (tf, callback, &verbose);
+
+	tf_state = libthinkfinger_acquire (tf);
+	if (tf_state == TF_STATE_ACQUIRE_SUCCESS) {
+		printf ("tf-tool: acquire successful\n");
+		printf ("tf-tool: fingerprint bir: %s\n", BIR_FILE);
+		ret = 0;
+	} else if (tf_state == TF_STATE_ACQUIRE_FAILED) {
+		printf ("tf-tool: acquire failed\n");
+		ret = 1;
+	} else if (tf_state == TF_RESULT_COMM_FAILED) {
 		printf ("tf-tool: communication error\n");
+		ret = 1;
+	}
 
-	printf ("tf-tool: verifying fingerprint...\n");
-	t = libthinkfinger_verify (tf);
-	if (t == TF_RESULT_VERIFY_SUCCESS)
-		printf ("tf-tool: fingerprint matches\n");
-	else if (t == TF_RESULT_VERIFY_FAILED)
-		printf ("tf-tool: fingerprint does not match\n");
-	else if (t == TF_RESULT_COMM_FAILED)
-		printf ("tf-tool: communication error\n");
-
-exit:
 	libthinkfinger_free (tf);
-	return 0;
+	return ret;
+}
+
+int
+verify (libthinkfinger *tf, int verbose)
+{
+	int tf_state;
+	int ret = 0;
+
+	tf = libthinkfinger_init ();
+	printf ("tf-tool: intialization: %s\n", tf ? "success" : "failed");
+
+	if (tf == NULL)
+		return 1;
+
+	libthinkfinger_set_file (tf, BIR_FILE);
+	libthinkfinger_set_callback (tf, callback, &verbose);
+
+	tf_state = libthinkfinger_verify (tf);
+	if (tf_state == TF_RESULT_VERIFY_SUCCESS) {
+		printf ("tf-tool: fingerprint matches\n");
+		ret = 0;
+	} else if (tf_state == TF_RESULT_VERIFY_FAILED) {
+		printf ("tf-tool: fingerprint does not match\n");
+		ret = 0;
+	} else if (tf_state == TF_RESULT_COMM_FAILED) {
+		printf ("tf-tool: communication error\n");
+		ret = 1;
+	}
+
+	libthinkfinger_free (tf);
+	return ret;
+}
+
+int
+main (int argc, char *argv[])
+{
+	int i;
+	int verbose = 0;
+	int mode = 0;
+	int ret = 0;
+	libthinkfinger *tf = NULL;
+
+	if (argc == 1){
+		usage (argv[0], 0);
+		exit (1);
+	}
+
+	for (i = 1; i < argc; i++) {
+		char *arg = argv[i];
+		if (!strcmp (arg, "--acquire")) {
+			mode = MODE_ACQUIRE;
+		} else if (!strcmp (arg, "--verify")) {
+			mode = MODE_VERIFY;
+		} else if (!strcmp (arg, "--verbose")) {
+			printf ("Running in verbose mode.\n");
+			verbose = 1;
+		} else {
+			usage (argv [0], 1);
+		}
+	}
+
+	if (mode == MODE_ACQUIRE)
+		ret = acquire (tf, verbose);
+	else if (mode == MODE_VERIFY)
+		ret = verify (tf, verbose);
+	else {
+		usage (argv[0], 1);
+		ret = 1;
+	}
+
+	exit (ret);
 }
