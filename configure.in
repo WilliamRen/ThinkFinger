@@ -60,7 +60,7 @@ else
 fi
 exec_prefix=$EXEC_PREFIX
 
-# AC_SUBST PREFIX, LIBDIR and BINDIR
+# AC_SUBST PREFIX, LIBDIR, BINDIR and SBINDIR
 PREFIX_TMP="$prefix"
 PREFIX=`eval echo $PREFIX_TMP`
 AC_SUBST(PREFIX)
@@ -73,12 +73,16 @@ BINDIR_TMP="$bindir"
 BINDIR=`eval echo $BINDIR_TMP`
 AC_SUBST(BINDIR)
 
+SBINDIR_TMP="$sbindir"
+SBINDIR=`eval echo $SBINDIR_TMP`
+AC_SUBST(SBINDIR)
+
 # AC_SUBST CFLAGS
 CFLAGS="$CFLAGS -Wall"
 CFLAGS="$CFLAGS -fno-common"
 CFLAGS="$CFLAGS -fPIC"
 CFLAGS="$CFLAGS -Wchar-subscripts"
-CFLAGS="$CFLAGS -Wmissing-declarations" 
+CFLAGS="$CFLAGS -Wmissing-declarations"
 CFLAGS="$CFLAGS -Wmissing-prototypes"
 CFLAGS="$CFLAGS -Wnested-externs"
 CFLAGS="$CFLAGS -Wpointer-arith"
@@ -86,7 +90,7 @@ CFLAGS="$CFLAGS -Wcast-align"
 CFLAGS="$CFLAGS -Wsign-compare"
 CFLAGS="$CFLAGS -Wdeclaration-after-statement"
 AC_SUBST(CFLAGS)
-	
+
 # AC_SUBST USB_{LIBS,CFLAGS}
 AC_SUBST([USB_LIBS])
 AC_SUBST([USB_CFLAGS])
@@ -95,6 +99,7 @@ AC_SUBST([USB_CFLAGS])
 AC_CONFIG_FILES([Makefile
 		libthinkfinger/Makefile
 		libthinkfinger/thinkfinger.pc
+		tf-init/Makefile
 		tf-tool/Makefile
 		docs/Makefile
 		docs/autodocs/Makefile
@@ -108,6 +113,7 @@ echo "
  + prefix:	${PREFIX}
  + libdir:	${LIBDIR}
  + bindir:	${BINDIR}
+ + sbindir:	${SBINDIR}
 
  + cflags:	${CFLAGS}
 "

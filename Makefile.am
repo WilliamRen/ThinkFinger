@@ -1,1 +1,1 @@
-SUBDIRS = docs libthinkfinger tf-tool
+SUBDIRS = docs libthinkfinger tf-init tf-tool
