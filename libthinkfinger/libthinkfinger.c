@@ -151,7 +151,7 @@ static void task_start (libthinkfinger *tf, libthinkfinger_task task)
 	tf->task_running = 1;
 }
 
-static void task_stop (libthinkfinger *tf) 
+static void task_stop (libthinkfinger *tf)
 {
 	tf->task_running = 0;
 	tf->task = TF_TASK_IDLE;
@@ -337,7 +337,7 @@ parse (libthinkfinger *tf, unsigned char *inbuf)
 		ret_val =0;
 	}
 
-	if (tf->state != state)
+	if (tf->state != state && tf->cb != NULL)
 		tf->cb(tf->state, tf->cb_data);
 
 out:
@@ -367,7 +367,8 @@ ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, int len)
 		if ((inbuf[0] == 0x43) && (inbuf[1] == 0x69)) {
 			tf->write_fingerprint = 0;
 			tf->state = TF_STATE_ACQUIRE_SUCCESS;
-			tf->cb(tf->state, tf->cb_data);
+			if (tf->cb != NULL)
+				tf->cb(tf->state, tf->cb_data);
 			goto out_result;
 		} else
 			write (tf->fd, inbuf, real_len);
@@ -521,9 +522,6 @@ libthinkfinger_set_callback (libthinkfinger *tf, libthinkfinger_state_cb cb, voi
 
 	if (tf == NULL) {
 		printf ("Error: libthinkfinger not properly initialized.\n");
-		goto out;
-	} else if (cb == NULL) {
-		printf ("Error: Callback is NULL\n");
 		goto out;
 	}
 
