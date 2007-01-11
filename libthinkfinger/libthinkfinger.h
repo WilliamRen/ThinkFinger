@@ -27,6 +27,7 @@
 #define THINKFINGER_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <usb.h>
 #include <fcntl.h>
@@ -131,9 +132,11 @@ int libthinkfinger_verify(libthinkfinger *tf);
  *
  * initializes the fingerprint scanner and returns a struct libthinkfinger on success
  *
+ * @param b boolean to tell whether libthinkfinger should initialize the fingerprint scanner
+ *
  * @return pointer to sturct libthinkfinger on success, else NULL 
  */
-libthinkfinger *libthinkfinger_init(void);
+libthinkfinger *libthinkfinger_init(_Bool init_scanner);
 
 /** @brief free an instance of libthinkfinger
  *

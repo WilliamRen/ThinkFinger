@@ -536,7 +536,7 @@ out:
 }
 
 libthinkfinger *
-libthinkfinger_init(void)
+libthinkfinger_init (_Bool init_scanner)
 {
 	libthinkfinger *tf;
 	struct usb_device *usb_dev;
@@ -579,11 +579,13 @@ libthinkfinger_init(void)
 
 	//sleep(1);		/* TODO: Original code waits, so should we? */
 
-	task_start (tf, TF_TASK_INIT);
-	do {
-		ask_scanner_raw (tf, SILENT, init[i].data, init[i].len);
-	} while (init[++i].data);
-	task_stop (tf);
+	if (init_scanner) {
+		task_start (tf, TF_TASK_INIT);
+		do {
+			ask_scanner_raw (tf, SILENT, init[i].data, init[i].len);
+		} while (init[++i].data);
+		task_stop (tf);
+	}
 
 	goto out;
 
