@@ -78,17 +78,17 @@ callback (libthinkfinger_state state, void *data)
 static void
 usage (char* name, int error_code)
 {
-	printf ("Usage: %s [--acquire | --verify] [--verbose]\n", basename (name));
+	printf ("Usage: %s [--acquire | --verify] [--verbose] [--no-init]\n", basename (name));
 	exit (error_code);
 }
 
 static int
-acquire (libthinkfinger *tf, int verbose)
+acquire (libthinkfinger *tf, _Bool init_scanner, _Bool verbose)
 {
  	int tf_state;
-	int ret = 0;
+	int retval = 0;
 
-	tf = libthinkfinger_init ();
+	tf = libthinkfinger_init (init_scanner);
 	printf ("tf-tool: intialization: %s\n", tf ? "success" : "failed");
 
 	if (tf == NULL)
@@ -101,26 +101,26 @@ acquire (libthinkfinger *tf, int verbose)
 	if (tf_state == TF_STATE_ACQUIRE_SUCCESS) {
 		printf ("tf-tool: acquire successful\n");
 		printf ("tf-tool: fingerprint bir: %s\n", BIR_FILE);
-		ret = 0;
+		retval = 0;
 	} else if (tf_state == TF_STATE_ACQUIRE_FAILED) {
 		printf ("tf-tool: acquire failed\n");
-		ret = 1;
+		retval = 1;
 	} else if (tf_state == TF_RESULT_COMM_FAILED) {
 		printf ("tf-tool: communication error\n");
-		ret = 1;
+		retval = 1;
 	}
 
 	libthinkfinger_free (tf);
-	return ret;
+	return retval;
 }
 
 int
-verify (libthinkfinger *tf, int verbose)
+verify (libthinkfinger *tf, _Bool init_scanner, _Bool verbose)
 {
 	int tf_state;
-	int ret = 0;
+	int retval = 0;
 
-	tf = libthinkfinger_init ();
+	tf = libthinkfinger_init (init_scanner);
 	printf ("tf-tool: intialization: %s\n", tf ? "success" : "failed");
 
 	if (tf == NULL)
@@ -132,26 +132,27 @@ verify (libthinkfinger *tf, int verbose)
 	tf_state = libthinkfinger_verify (tf);
 	if (tf_state == TF_RESULT_VERIFY_SUCCESS) {
 		printf ("tf-tool: fingerprint matches\n");
-		ret = 0;
+		retval = 0;
 	} else if (tf_state == TF_RESULT_VERIFY_FAILED) {
 		printf ("tf-tool: fingerprint does not match\n");
-		ret = 0;
+		retval = 0;
 	} else if (tf_state == TF_RESULT_COMM_FAILED) {
 		printf ("tf-tool: communication error\n");
-		ret = 1;
+		retval = 1;
 	}
 
 	libthinkfinger_free (tf);
-	return ret;
+	return retval;
 }
 
 int
 main (int argc, char *argv[])
 {
 	int i;
-	int verbose = 0;
 	int mode = 0;
-	int ret = 0;
+	int retval = 0;
+	_Bool verbose = false;
+	_Bool init_scanner = true;
 	libthinkfinger *tf = NULL;
 
 	if (argc == 1){
@@ -167,20 +168,22 @@ main (int argc, char *argv[])
 			mode = MODE_VERIFY;
 		} else if (!strcmp (arg, "--verbose")) {
 			printf ("Running in verbose mode.\n");
-			verbose = 1;
+			verbose = true;
+		} else if (!strcmp (arg, "--no-init")) {
+			init_scanner = false;
 		} else {
 			usage (argv [0], 1);
 		}
 	}
 
 	if (mode == MODE_ACQUIRE)
-		ret = acquire (tf, verbose);
+		retval = acquire (tf, init_scanner, verbose);
 	else if (mode == MODE_VERIFY)
-		ret = verify (tf, verbose);
+		retval = verify (tf, init_scanner, verbose);
 	else {
 		usage (argv[0], 1);
-		ret = 1;
+		retval = 1;
 	}
 
-	exit (ret);
+	exit (retval);
 }
