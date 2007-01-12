@@ -15,7 +15,7 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -24,7 +24,7 @@
 
 # Initialize auto{conf,make}
 AC_PREREQ(2.59)
-AC_INIT(libthinkfinger, 0.1, thoenig@suse.de, libthinkfinger)
+AC_INIT(libthinkfinger, 0.2, thoenig@suse.de, libthinkfinger)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([libthinkfinger/libthinkfinger.c])
 
@@ -36,8 +36,23 @@ AC_PROG_LIBTOOL
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h string.h stdio.h stdlib.h errno.h usb.h])
 
+# AC_ARG_ENABLE PAM
+AC_MSG_CHECKING([whether to build the pluggable authentication module (PAM)])
+AC_ARG_ENABLE(pam, AC_HELP_STRING([--enable-pam],[build PAM module]),enable_pam=$enableval,enable_pam=yes)
+AC_MSG_RESULT([$enable_pam])
+
+if test "x$enable_pam" != "xno"; then
+	AC_CHECK_HEADERS(security/pam_appl.h security/pam_modules.h,, AC_MSG_ERROR(PAM header files not found))
+	AC_CHECK_LIB(pam, pam_start, [PAM_LIBS="-lpam"], AC_MSG_ERROR([libpam missing]))
+	AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS="-lpthread"], AC_MSG_ERROR([libpthread missing]))
+fi
+
+# AC_ARG_ENABLE SECUREDIR
+AC_ARG_ENABLE(securedir, AC_HELP_STRING([--with-securedir=dir],[Where to put PAM module @<:@default=$libdir/security@:>@]))
+
+
 # Check for libusb
-PKG_CHECK_MODULES(libusb, libusb >= 0.1.12)
+PKG_CHECK_MODULES(USB, libusb >= 0.1.12, usb_found=yes, AC_MSG_RESULT(no))
 
 # Check for Doxygen
 AC_CHECK_PROG(DOXYGEN, [doxygen], [doxygen], [])
@@ -60,7 +75,7 @@ else
 fi
 exec_prefix=$EXEC_PREFIX
 
-# AC_SUBST PREFIX, LIBDIR, BINDIR and SBINDIR
+# AC_SUBST PREFIX, LIBDIR, BINDIR, SBINDIR and SECUREDIR
 PREFIX_TMP="$prefix"
 PREFIX=`eval echo $PREFIX_TMP`
 AC_SUBST(PREFIX)
@@ -77,6 +92,14 @@ SBINDIR_TMP="$sbindir"
 SBINDIR=`eval echo $SBINDIR_TMP`
 AC_SUBST(SBINDIR)
 
+if ! test -z "$with_securedir" ; then
+	SECUREDIR_TMP="$with_securedir"
+else
+	SECUREDIR_TMP=$LIBDIR/security
+fi
+SECUREDIR=`eval echo $SECUREDIR_TMP`
+AC_SUBST(SECUREDIR)
+
 # AC_SUBST CFLAGS
 CFLAGS="$CFLAGS -Wall"
 CFLAGS="$CFLAGS -fno-common"
@@ -91,18 +114,27 @@ CFLAGS="$CFLAGS -Wsign-compare"
 CFLAGS="$CFLAGS -Wdeclaration-after-statement"
 AC_SUBST(CFLAGS)
 
-# AC_SUBST USB_{LIBS,CFLAGS}
+# AC_SUBST USB_LIBS
 AC_SUBST([USB_LIBS])
-AC_SUBST([USB_CFLAGS])
+
+# AC_SUBST PAM_LIBS
+AC_SUBST([PAM_LIBS])
+
+# AC_SUBST_PTHREAD_LIBS
+AC_SUBST([PTHREAD_LIBS])
+
+# AM_CONDITIONAL
+AM_CONDITIONAL(BUILD_PAM, test x$enable_pam = xyes)
 
 # AC_CONFIG_FILES
 AC_CONFIG_FILES([Makefile
-		libthinkfinger/Makefile
-		libthinkfinger/thinkfinger.pc
-		tf-init/Makefile
-		tf-tool/Makefile
 		docs/Makefile
 		docs/autodocs/Makefile
+		libthinkfinger/Makefile
+		libthinkfinger/libthinkfinger.pc
+		pam/Makefile
+		tf-init/Makefile
+		tf-tool/Makefile
 ])
 
 # Configuration
@@ -110,12 +142,19 @@ echo "
  libthinkfinger $VERSION
  ==================
 
- + prefix:	${PREFIX}
- + libdir:	${LIBDIR}
- + bindir:	${BINDIR}
- + sbindir:	${SBINDIR}
+ + prefix:		${PREFIX}
+ + libdir:		${LIBDIR}
+ + bindir:		${BINDIR}
+ + sbindir:		${SBINDIR}
+ + securedir:		${SECUREDIR}
 
- + cflags:	${CFLAGS}
+ + cflags:		${CFLAGS}
+ + libusb:		${USB_LIBS}
+
+ Build PAM module:	$enable_pam
+
+ + libpam:              ${PAM_LIBS}
+ + libpthread:		${PTHREAD_LIBS}
 "
 
 # AC_OUTPUT
