@@ -49,7 +49,7 @@ typedef enum {
 	TF_TASK_IDLE      = 0x00, // idle
 	TF_TASK_INIT      = 0x01, // initialization
 	TF_TASK_ACQUIRE   = 0x02, // acquirement
-	TF_TASK_VERIFY    = 0x03, // verification 
+	TF_TASK_VERIFY    = 0x03, // verification
 	TF_TASK_UNDEFINED = 0xff  // undefined
 } libthinkfinger_task;
 
@@ -134,7 +134,7 @@ int libthinkfinger_verify(libthinkfinger *tf);
  *
  * @param b boolean to tell whether libthinkfinger should initialize the fingerprint scanner
  *
- * @return pointer to sturct libthinkfinger on success, else NULL 
+ * @return pointer to sturct libthinkfinger on success, else NULL
  */
 libthinkfinger *libthinkfinger_init(_Bool init_scanner);
 
