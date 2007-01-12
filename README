@@ -4,7 +4,69 @@ ThinkFinger
 ThinkFinger is a driver for the SGS Thomson Microelectronics fingerprint reader
 found in most IBM/Lenovo ThinkPads.
 
-Porject Page
+It is devided into two parts: libthinkfinger and pam_thinkfinger.
+
+libthinkfinger is a library to be used in order to communicate with the finger-
+print reader.  The utility 'tf-tool' can be used to acquire and to verify
+fingerprints.
+
+Simple test tool: tf-tool
+=========================
+
+Usage: tf-tool [--acquire | --verify] [--verbose] [--no-init]
+
+To acquire a fingerprint run 'tf-tool --acquire'.  You will be prompted to
+swipe your finger.  It needs three successful swipes to get a fingerprint.
+This fingerprint is being stored in '/tmp/test.bir'.
+
+To verify a fingerprint run 'tf-tool --verify'.  tf-tool will read a finger-
+print image from '/tmp/test.bir' and compare that with the finger which
+is being swiped.
+
+Note:  It is likely that you have to run 'tf-tool' as root as it needs to
+access the USB device.  On most distribution the device node can not be
+accessed by a regular user.
+
+Pluggable Authentication Module: pam_thinkfinger
+================================================
+
+The pluggable authentication module pam_thinkfinger can be used for PAM (e.g.
+to log into your system).  The module needs to be copied to the location
+where PAM expects the modules to reside.  On most GNU/Linux distributions
+PAM modules are stored in '/lib/security'.
+
+In order to use pam_thinkfinger, PAM needs to be aware of the module.  To
+achieve this please edit '/etc/pam.d/common-auth'.  You are required to add
+the following directives:
+
+     auth     sufficient     pam_thinkfinger.so
+     password sufficient     pam_thinkfinger.so
+
+See [1] for a complete example how '/etc/pam.d/common-auth' looks like.
+
+The module does only trigger for users which have deposited their fingerprint
+in '/etc/pam_thinkfinger/'.
+
+E.g. if the user 'bob' wants to login using his fingerprint, his fingerprint
+needs to be stored at '/etc/pam_thinkfinger/bob.bir'.  See [2] for a more
+detailed example.
+
+On some systems it is required to execute 'tf-init' once to initialize the
+fingerprint reader.
+
+PAM Compatibility
+=================
+
+The pluggable authentication module pam_thinkfinger should work with all
+PAM aware applications.
+
+Authors
+=======
+
+Timo Hoenig <thoenig@suse.de>, <thoenig@nouse.net>
+Pavel Machek <pavel@suse.cz>
+
+Project Page
 ============
 
 * http://www.sourceforge.net/projects/thinkfinger
@@ -13,3 +75,38 @@ SVN
 ===
 
 * svn co https://svn.sourceforge.net/svnroot/thinkfinger
+
+Mailing List
+============
+
+* https://lists.sourceforge.net/lists/listinfo/thinkfinger-devel
+
+[1] Example for a ThinkFinger-enabled '/etc/pam.d/common-auth'
+
+#%PAM-1.0
+
+auth	required	pam_env.so
+auth	 sufficient	pam_thinkfinger.so
+password sufficient	pam_thinkfinger.so
+auth	required	pam_unix2.so
+
+[2] Example how to store a fingerprint image for user 'bob'
+
+root@host~> tf-tool --acquire
+
+( Now user 'bob' has to swipe his finger three times )
+
+tf-tool: intialization: success
+Please swipe your finger...
+Please swipe your finger...
+Please swipe your finger...
+Writing bir file...
+tf-tool: acquire successful
+tf-tool: fingerprint bir: /tmp/test.bir
+root@host:~> ls -al /tmp/test.bir
+-rw------- 1 root root 174 2007-01-12 14:59 /tmp/test.bir
+root@host:~> mv /tmp/test.bir /etc/pam_thinkfinger/bob.bir
+
+Now 'bob' can authenticate himself by swiping his finger.
+
+
