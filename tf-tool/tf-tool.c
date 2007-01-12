@@ -89,7 +89,7 @@ acquire (libthinkfinger *tf, _Bool init_scanner, _Bool verbose)
 	int retval = 0;
 
 	tf = libthinkfinger_init (init_scanner);
-	printf ("tf-tool: intialization: %s\n", tf ? "success" : "failed");
+	printf ("tf-tool: initialization: %s\n", tf ? "success" : "failed");
 
 	if (tf == NULL)
 		return 1;
@@ -121,7 +121,7 @@ verify (libthinkfinger *tf, _Bool init_scanner, _Bool verbose)
 	int retval = 0;
 
 	tf = libthinkfinger_init (init_scanner);
-	printf ("tf-tool: intialization: %s\n", tf ? "success" : "failed");
+	printf ("tf-tool: initialization: %s\n", tf ? "success" : "failed");
 
 	if (tf == NULL)
 		return 1;
