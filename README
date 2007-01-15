@@ -40,7 +40,6 @@ pluggable authentication modules.  It is convenient that this directory is
 
   $ ./configure --with-securedir=/lib/security
 
-
 If you are compiling from an SVN checkout, the first time you also
 need:
 
