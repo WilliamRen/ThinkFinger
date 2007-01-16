@@ -72,6 +72,9 @@ callback (libthinkfinger_state state, void *data)
 	    state == TF_STATE_SWIPE_2)
 		printf ("Please swipe your finger...\n");
 
+	if (state == TF_STATE_ENROLL_SUCCESS)
+		printf ("Fingerprint enrolled successfully...\n");
+
 	if (state == TF_STATE_ACQUIRE_SUCCESS)
 		printf ("Writing bir file...\n");
 }
@@ -178,9 +181,9 @@ main (int argc, char *argv[])
 	}
 
 	if (mode == MODE_ACQUIRE)
-		retval = acquire (tf, init_scanner, &verbose);
+		retval = acquire (tf, init_scanner, verbose);
 	else if (mode == MODE_VERIFY)
-		retval = verify (tf, init_scanner, &verbose);
+		retval = verify (tf, init_scanner, verbose);
 	else {
 		usage (argv[0], 1);
 		retval = 1;
