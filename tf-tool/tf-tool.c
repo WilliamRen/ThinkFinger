@@ -35,8 +35,9 @@ static void
 callback (libthinkfinger_state state, void *data)
 {
 	char *str;
+	_Bool *verbose = (_Bool *) data;
 
-	if ((*(int*) data) == 1) {
+	if (*verbose == true) {
 		str = "unknown";
 
 		if (state == TF_STATE_SWIPE_0)
@@ -177,9 +178,9 @@ main (int argc, char *argv[])
 	}
 
 	if (mode == MODE_ACQUIRE)
-		retval = acquire (tf, init_scanner, verbose);
+		retval = acquire (tf, init_scanner, &verbose);
 	else if (mode == MODE_VERIFY)
-		retval = verify (tf, init_scanner, verbose);
+		retval = verify (tf, init_scanner, &verbose);
 	else {
 		usage (argv[0], 1);
 		retval = 1;
