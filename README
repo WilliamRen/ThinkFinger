@@ -10,47 +10,12 @@ libthinkfinger is a library to be used in order to communicate with the finger-
 print reader.  The utility 'tf-tool' can be used to acquire and to verify
 fingerprints.
 
-Software required for compilation
-=================================
+Installation Instructions
+=========================
 
-In order to compile ThinkFinger you need the following software:
+Please check the INSTALL file.
 
-- the GCC compiler (http://www.gnu.org/software/gcc/)
-- libtool (http://www.gnu.org/software/libtool/)
-- pkg-config (http://pkgconfig.freedesktop.org)
-- the Linux-PAM, development files, version >= 0.81
-  (http://www.kernel.org/pub/linux/libs/pam/)
-- libusb, development files, version >= 0.1.12 (http://libusb.sourceforge.net/)
-
-To have access to the optional documentation, you also need:
-
-- doxygen (http://www.stack.nl/~dimitri/doxygen/)
-
-Once the necessary software is installed, run:
-
-  $ ./configure
-  $ make
-  $ make install
-
-Note:  For a proper installation it is very likely that you have to use the
-parameter '--with-securedir=$PAM_MODULES_DIR' when running 'configure'.
-$PAM_MODULES_DIR is the directory where your PAM installation expects the
-pluggable authentication modules.  It is convenient that this directory is
-'/lib/security'.  Example:
-
-  $ ./configure --with-securedir=/lib/security
-
-If you are compiling from an SVN checkout, the first time you also
-need:
-
-- autoconf (http://www.gnu.org/software/autoconf/)
-- automake (http://www.gnu.org/software/automake/)
-
-And before the './configure' script run:
-
-  $ ./autogen.sh
-
-Simple test tool: tf-tool
+Simple Test Tool: tf-tool
 =========================
 
 Usage: tf-tool [--acquire | --verify] [--verbose] [--no-init]
