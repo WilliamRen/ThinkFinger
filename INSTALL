@@ -36,6 +36,12 @@ pluggable authentication modules.  It is convenient that this directory is
 
   $ ./configure --with-securedir=/lib/security
 
+When building with PAM support you might also want to adjust the parameter
+'--with-birdir'.  The ThinkFinger PAM module uses this directory to look up the
+biometric identification records (bir files).  Example:
+
+  $ ./configure --with-birdir=/etc/pam_thinkfinger
+
 Instructions For SVN
 ====================
 
