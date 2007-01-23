@@ -24,6 +24,7 @@
   */
 
 #include <sys/types.h>
+#include <errno.h>
 #include <libgen.h>
 #include <pwd.h>
 
@@ -295,7 +296,11 @@ main (int argc, char *argv[])
 				retval = 1;
 				goto out;
 			}
-
+			if (access (PAM_BIRDIR, R_OK|W_OK|X_OK) != 0) {
+				perror ("Could not access " PAM_BIRDIR);
+				retval = 1;
+				goto out;
+			}
 			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user);
 			if (path_len > MAX_PATH) {
 				printf ("Path \"%s/%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, MAX_PATH);
