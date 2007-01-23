@@ -3,7 +3,7 @@
 # configure.in for ThinkFinger, process with autoconf to create a configure
 # script.
 #
-# Copyright (C) 2006 Novell, Inc.
+# Copyright (C) 2006, 2007 Novell, Inc.
 # Author: Timo Hoenig <thoenig@suse.de>, <thoenig@nouse.net>
 #
 # This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,8 @@
 
 # Initialize auto{conf,make}
 AC_PREREQ(2.59)
-AC_INIT(thinkfinger, 0.2, thoenig@suse.de, thinkfinger)
+AC_INIT(ThinkFinger, 0.2, http://thinkfinger.sourceforge.net/, thinkfinger)
+AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([libthinkfinger/libthinkfinger.c])
 
@@ -45,11 +46,14 @@ if test "x$enable_pam" != "xno"; then
 	AC_CHECK_HEADERS(security/pam_appl.h security/pam_modules.h,, AC_MSG_ERROR(PAM header files not found))
 	AC_CHECK_LIB(pam, pam_start, [PAM_LIBS="-lpam"], AC_MSG_ERROR([libpam missing]))
 	AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS="-lpthread"], AC_MSG_ERROR([libpthread missing]))
+	AC_DEFINE(BUILD_PAM,1,[Define to 1 if you want to build with PAM support.])
 fi
 
 # AC_ARG_ENABLE SECUREDIR
 AC_ARG_ENABLE(securedir, AC_HELP_STRING([--with-securedir=dir],[Where to put PAM module @<:@default=$libdir/security@:>@]))
 
+# AC_ARG_ENABLE_BIR_DIR
+AC_ARG_ENABLE(birdir, AC_HELP_STRING([--with-birdir=dir],[Where to put the biometric identification records (bir files) @<:@default=$sysconfdir/pam_thinkfinger@:>@]))
 
 # Check for libusb using pkg-config
 PKG_CHECK_MODULES(USB, libusb >= 0.1.12, usb_found=yes, AC_MSG_ERROR([libusb missing]))
@@ -75,7 +79,7 @@ else
 fi
 exec_prefix=$EXEC_PREFIX
 
-# AC_SUBST PREFIX, LIBDIR, BINDIR, SBINDIR and SECUREDIR
+# AC_SUBST PREFIX, LIBDIR, BINDIR, SBINDIR SECUREDIR and BIRDIR
 PREFIX_TMP="$prefix"
 PREFIX=`eval echo $PREFIX_TMP`
 AC_SUBST(PREFIX)
@@ -99,6 +103,17 @@ else
 fi
 SECUREDIR=`eval echo $SECUREDIR_TMP`
 AC_SUBST(SECUREDIR)
+
+if ! test -z "$with_birdir" ; then
+	BIRDIR_TMP="$with_birdir"
+else
+	BIRDIR_TMP=$sysconfdir/pam_thinkfinger
+fi
+BIRDIR=`eval echo $BIRDIR_TMP`
+AC_SUBST(BIRDIR)
+
+# AC_DEFINE PAM_BIRDIR
+AC_DEFINE_UNQUOTED(PAM_BIRDIR,"${BIRDIR}",[Define to the directory where biometric identification records (bir files) are being stored.])
 
 # AC_SUBST CFLAGS
 CFLAGS="$CFLAGS -Wall"
@@ -124,7 +139,7 @@ AC_SUBST([PAM_LIBS])
 AC_SUBST([PTHREAD_LIBS])
 
 # AM_CONDITIONAL
-AM_CONDITIONAL(BUILD_PAM, test x$enable_pam = xyes)
+AM_CONDITIONAL(BUILD_PAM, test "x$enable_pam" = "xyes")
 
 # AC_CONFIG_FILES
 AC_CONFIG_FILES([Makefile
@@ -139,23 +154,27 @@ AC_CONFIG_FILES([Makefile
 
 # Configuration
 echo "
- ThinkFinger $VERSION
+ $PACKAGE_NAME $VERSION
  ===============
 
  + prefix:		${PREFIX}
  + libdir:		${LIBDIR}
  + bindir:		${BINDIR}
  + sbindir:		${SBINDIR}
- + securedir:		${SECUREDIR}
 
  + cflags:		${CFLAGS}
  + libusb:		${USB_LIBS}
+"
 
- Build PAM module:	$enable_pam
+if test  "x$enable_pam" = "xyes" ; then
+echo " Build PAM module:	$enable_pam
 
  + libpam:              ${PAM_LIBS}
  + libpthread:		${PTHREAD_LIBS}
+ + securedir:		${SECUREDIR}
+ + birdir:		${BIRDIR}
 "
+fi
 
 # AC_OUTPUT
 AC_OUTPUT
