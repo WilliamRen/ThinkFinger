@@ -4,7 +4,7 @@
   *   reader (found in IBM/Lenovo ThinkPads and IBM/Lenovo USB keyboards with
   *   built-in fingerprint reader).
   *
-  *   Copyright (C) 2006 Timo Hoenig <thoenig@suse.de>
+  *   Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>
   *
   *   This program is free software; you can redistribute it and/or modify
   *   it under the terms of the GNU General Public License as published by
