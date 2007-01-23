@@ -278,10 +278,10 @@ main (int argc, char *argv[])
 	for (i = 1; i < argc; i++) {
 		char *arg = argv[i];
 		if (!strcmp (arg, "--acquire")) {
-			sprintf (tfdata.bir, "%s", DEFAULT_BIR_PATH);
+			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
 			tfdata.mode = MODE_ACQUIRE;
 		} else if (!strcmp (arg, "--verify")) {
-			sprintf (tfdata.bir, "%s", DEFAULT_BIR_PATH);
+			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
 			tfdata.mode = MODE_VERIFY;
 #if BUILD_PAM
 		} else if (!strcmp (arg, "--add-user")) {
@@ -302,12 +302,12 @@ main (int argc, char *argv[])
 				goto out;
 			}
 			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user);
-			if (path_len > MAX_PATH) {
-				printf ("Path \"%s/%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, MAX_PATH);
+			if (path_len > MAX_PATH-1) {
+				printf ("Path \"%s/%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, MAX_PATH-1);
 				retval = 1;
 				goto out;
 			}
-			sprintf (tfdata.bir, "%s/%s", PAM_BIRDIR, user);
+			snprintf (tfdata.bir, MAX_PATH-1, "%s/%s", PAM_BIRDIR, user);
 			tfdata.mode = MODE_ACQUIRE;
 #endif
 		} else if (!strcmp (arg, "--verbose")) {
@@ -327,6 +327,12 @@ main (int argc, char *argv[])
 		}
 	}
 
+	if (tfdata.verbose == true) {
+		printf ("\n* Mode: %s\n* Biometric identification record file: \'%s\'\n\n",
+			 (tfdata.mode == MODE_ACQUIRE) ? "acquire" : "verify",
+			 tfdata.bir);
+
+	}
 	if (tfdata.mode == MODE_ACQUIRE) {
 		retval = acquire (&tfdata);
 	} else if (tfdata.mode == MODE_VERIFY) {
