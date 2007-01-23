@@ -21,10 +21,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-#define BIR_PATH         "/etc/pam_thinkfinger"
-#define BIR_PATH_MAX_LEN 256
-#define SWIPE_RETRY      3
-
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
@@ -32,6 +28,12 @@
 #include <libthinkfinger.h>
 #include <security/pam_ext.h>
 #include <security/pam_modules.h>
+
+#include <config.h>
+
+#define MAX_PATH    256
+#define SWIPE_RETRY 3
+
 
 #define PAM_SM_AUTH
 
@@ -49,9 +51,9 @@ static int pam_thinkfinger_check_user (const char *user)
 {
 	int retval = -1;
 	int fd;
-	char bir_file[BIR_PATH_MAX_LEN];
+	char bir_file[MAX_PATH];
 
-	snprintf (bir_file, BIR_PATH_MAX_LEN, "%s/%s.bir", BIR_PATH, user);
+	snprintf (bir_file, MAX_PATH-1, "%s/%s.bir", PAM_BIRDIR, user);
 	fd = open (bir_file, O_RDONLY);
 	if (fd == -1)
 		goto out;
@@ -67,9 +69,9 @@ static int pam_thinkfinger_verify (const struct pam_thinkfinger_s *pam_thinkfing
 {
 	int tf_state;
 	int retval = 0;
-	char bir_file[BIR_PATH_MAX_LEN];
+	char bir_file[MAX_PATH];
 
-	snprintf (bir_file, BIR_PATH_MAX_LEN, "%s/%s.bir", BIR_PATH, pam_thinkfinger->user);
+	snprintf (bir_file, MAX_PATH, "%s/%s.bir", PAM_BIRDIR, pam_thinkfinger->user);
 
 	if (pam_thinkfinger->tf == NULL)
 		return 1;
