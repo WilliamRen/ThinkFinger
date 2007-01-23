@@ -260,7 +260,9 @@ parse_scan_reply (libthinkfinger *tf, unsigned char *inbuf)
 		tf->state = TF_STATE_SWIPE_FAILED;
 		break;
 	default:
+#ifdef LIBTHINKFINGER_DEBUG
 		printf ("Unknown state 0x%x\n", inbuf[18]);
+#endif
 		break;
 	}
 
