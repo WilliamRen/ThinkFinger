@@ -1,5 +1,203 @@
--------------------------------------------------------------------
-Wed Nov  8 18:18:48 CET 2006 - thoenig@suse.de
+2007-01-24 18:41  Timo Hoenig <thoenig@suse.de>
 
-- initial check-in to SourceForge SVN 
+	* README, tf-tool/tf-tool.c: Replace '--no-init' switch with
+	  '--force-init' for tf-tool. By default it now does not to send
+	  the initialization sequence to the scanner.
+
+2007-01-24 14:44  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.c: Set tf->fd to zero if file
+	  descriptor was closed successfully.
+
+2007-01-24 12:38  Timo Hoenig <thoenig@suse.de>
+
+	* INSTALL: Fix requirements mentioned in INSTALL.
+
+2007-01-24 00:42  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Add file extension when storing bir files.
+
+2007-01-23 23:35  Timo Hoenig <thoenig@suse.de>
+
+	* configure.in: Fix AC_CONFIG_HEADERS.
+
+2007-01-23 22:50  Timo Hoenig <thoenig@suse.de>
+
+	* autogen.sh: Call autoheader early
+
+2007-01-23 22:05  Timo Hoenig <thoenig@suse.de>
+
+	* INSTALL: Add note about '--with-birdir' to the installation
+	  notes.
+
+2007-01-23 21:56  Timo Hoenig <thoenig@suse.de>
+
+	* pam/pam_thinkfinger.c: Use PAM_BIRDIR provided by config.h rather
+	  than own define BIR_PATH
+
+2007-01-23 21:52  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Use snprintf rather than sprintf, be even more
+	  verbose when running with '--verbose'
+
+2007-01-23 18:48  Timo Hoenig <thoenig@suse.de>
+
+	* README: Adjust documentation for 'tf-tool', drop needless
+	  directive for the PAM configuration, add Wolfgang Hafenscher to
+	  the list of authors (web page admin), add URL of new project
+	  page, update example run of 'tf-tool'
+
+2007-01-23 18:34  Timo Hoenig <thoenig@suse.de>
+
+	* tf-init/tf-init.c: Update copyright
+
+2007-01-23 18:25  Timo Hoenig <thoenig@suse.de>
+
+	* configure.in: Bump version number: 0.2.1
+
+2007-01-23 18:23  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Drop out if PAM_BIRDIR does not exist.
+
+2007-01-23 18:04  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Add option --add-user <login> which is
+	  available when building with PAM support. With this option users
+	  can acquire a biometric identification record (bir) file and
+	  store it directly to (e.g. /etc/pam_thinkfinger), minor fixes,
+	  whitespace cleanup, copyright update
+
+2007-01-23 18:02  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.c: Be less verbose on unknown
+	  results read from the fingerprint reader.
+
+2007-01-23 18:01  Timo Hoenig <thoenig@suse.de>
+
+	* configure.in: Update copyright, add web page to AC_INIT, add
+	  define BUILD_PAM, add argument --with-birdir, make configuration
+	  output conditional
+
+2007-01-23 17:58  Timo Hoenig <thoenig@suse.de>
+
+	* autogen.sh: Run autoheader, too
+
+2007-01-22 10:20  Timo Hoenig <thoenig@suse.de>
+
+	* configure.in: configure.in: Exit if pkg-config is not found.
+	  Patch by Luca Capello <luca@pca.it>
+
+2007-01-22 09:55  Timo Hoenig <thoenig@suse.de>
+
+	* INSTALL, README: Move installation notes from README to INSTALL.
+	  Patch by Luca Capello <luca@pca.it>
+
+2007-01-16 09:15  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Respect type change of verbose parameter,
+	  report successful enrollment
+
+2007-01-16 09:10  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Respect type change of verbose parameter.
+
+2007-01-15 19:40  Timo Hoenig <thoenig@suse.de>
+
+	* README: Remove empty line from README
+
+2007-01-15 19:37  Timo Hoenig <thoenig@suse.de>
+
+	* README: Add additional notes for installation. Patch by Luca
+	  Capello <luca@pca.it>
+
+2007-01-12 14:21  Timo Hoenig <thoenig@suse.de>
+
+	* README: Be more verbose on how to deal with libthinkfinger and
+	  pam_thinkfinger
+
+2007-01-12 14:17  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: fix typo
+
+2007-01-12 13:08  Timo Hoenig <thoenig@suse.de>
+
+	* configure.in: rename package to ThinkFinger
+
+2007-01-12 11:37  Timo Hoenig <thoenig@suse.de>
+
+	* pam, pam/Makefile.am, pam/pam_thinkfinger.c: add pluggable
+	  authentication module (PAM)
+
+2007-01-12 11:32  Timo Hoenig <thoenig@suse.de>
+
+	* tf-init/Makefile.am: cleanup
+
+2007-01-12 11:31  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/Makefile.am: cleanup
+
+2007-01-12 11:31  Timo Hoenig <thoenig@suse.de>
+
+	* Makefile.am, configure.in: prepare for landing of PAM support,
+	  cleanups
+
+2007-01-12 11:29  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.pc.in,
+	  libthinkfinger/thinkfinger.pc.in: rename thinkfinger.pc.in to
+	  libthinkfinger.pc.in
+
+2007-01-12 11:29  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/Makefile.am: use , rename thinkfinger.pc to
+	  libthinkfinger.pc, cleanups
+
+2007-01-12 11:27  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.h: remove whitespace
+
+2007-01-11 21:30  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.c: Do not enforce usage of
+	  callback, remove whitespace
+
+2007-01-11 14:26  Timo Hoenig <thoenig@suse.de>
+
+	* Makefile.am, configure.in, tf-init, tf-init/Makefile.am,
+	  tf-init/tf-init.c: Add helper 'tf-init'. This program simply
+	  initializes the USB device and is of no further help.
+
+2007-01-11 14:25  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Rename 'ret' to 'retval', new parameter
+	  '--no-init' to skip the initialization of the USB device
+
+2007-01-11 14:24  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.c, libthinkfinger/libthinkfinger.h:
+	  Add parameter 'init_scanner' for libthinkfinger_init(). If
+	  init_scanner is true the USB device will be initialized. This is
+	  only required once after booting.
+
+2006-12-11 10:02  Timo Hoenig <thoenig@suse.de>
+
+	* tf-tool/tf-tool.c: Enhanced tf-tool to accept command line
+	  options and verbose mode
+
+2006-11-09 15:27  Timo Hoenig <thoenig@suse.de>
+
+	* libthinkfinger/libthinkfinger.c: claim and release USB interface
+	  before using it
+
+2006-11-08 17:24  Timo Hoenig <thoenig@suse.de>
+
+	* AUTHORS, COPYING, ChangeLog, INSTALL, Makefile.am, NEWS, README,
+	  autogen.sh, configure.in, docs, docs/Makefile.am, docs/autodocs,
+	  docs/autodocs/Doxyfile, docs/autodocs/Makefile.am,
+	  libthinkfinger, libthinkfinger/Makefile.am,
+	  libthinkfinger/libthinkfinger-crc.c,
+	  libthinkfinger/libthinkfinger-crc.h,
+	  libthinkfinger/libthinkfinger.c, libthinkfinger/libthinkfinger.h,
+	  libthinkfinger/thinkfinger.pc.in, tf-tool, tf-tool/Makefile.am,
+	  tf-tool/tf-tool.c: initial import
 
