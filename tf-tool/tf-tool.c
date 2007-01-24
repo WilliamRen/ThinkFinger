@@ -37,6 +37,7 @@
 #define MAX_PATH     256
 
 #define DEFAULT_BIR_PATH "/tmp/test.bir"
+#define BIR_EXTENSION    ".bir"
 #define BANNER           "\n"PACKAGE_STRING " ("PACKAGE_BUGREPORT")\n" "Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>\n"
 
 #if BUILD_PAM
@@ -301,13 +302,13 @@ main (int argc, char *argv[])
 				retval = 1;
 				goto out;
 			}
-			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user);
+			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user) + strlen (BIR_EXTENSION);
 			if (path_len > MAX_PATH-1) {
-				printf ("Path \"%s/%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, MAX_PATH-1);
+				printf ("Path \"%s/%s%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, BIR_EXTENSION, MAX_PATH-1);
 				retval = 1;
 				goto out;
 			}
-			snprintf (tfdata.bir, MAX_PATH-1, "%s/%s", PAM_BIRDIR, user);
+			snprintf (tfdata.bir, MAX_PATH-1, "%s/%s%s", PAM_BIRDIR, user, BIR_EXTENSION);
 			tfdata.mode = MODE_ACQUIRE;
 #endif
 		} else if (!strcmp (arg, "--verbose")) {
