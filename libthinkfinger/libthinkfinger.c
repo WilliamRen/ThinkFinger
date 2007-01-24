@@ -450,8 +450,8 @@ libthinkfinger_verify (libthinkfinger *tf)
 		break;
 	}
 
-	close (tf->fd);
-
+	if (close (tf->fd) == 0)
+		tf->fd = 0;
 out:
 	return ret_val;
 }
