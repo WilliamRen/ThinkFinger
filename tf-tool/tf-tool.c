@@ -41,9 +41,9 @@
 #define BANNER           "\n"PACKAGE_STRING " ("PACKAGE_BUGREPORT")\n" "Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>\n"
 
 #if BUILD_PAM
-const char* usage_string = "[--acquire | --verify | --add-user <login>] [--verbose] [--no-init]";
+const char* usage_string = "[--acquire | --verify | --add-user <login>] [--verbose] [--force-init]";
 #else
-const char* usage_string = "[--acquire | --verify] [--verbose] [--no-init]";
+const char* usage_string = "[--acquire | --verify] [--verbose] [--force-init]";
 #endif
 
 typedef struct {
@@ -272,7 +272,7 @@ main (int argc, char *argv[])
 	}
 
 	tfdata.verbose = false;
-	tfdata.init_scanner = true;
+	tfdata.init_scanner = false;
 	tfdata.swipe_success = 0;
 	tfdata.swipe_failed = 0;
 
@@ -314,8 +314,8 @@ main (int argc, char *argv[])
 		} else if (!strcmp (arg, "--verbose")) {
 			printf ("Running in verbose mode.\n");
 			tfdata.verbose = true;
-		} else if (!strcmp (arg, "--no-init")) {
-			tfdata.init_scanner = false;
+		} else if (!strcmp (arg, "--force-init")) {
+			tfdata.init_scanner = true;
 		} else if (!strcmp (arg, "--help") || !strcmp (arg, "-h")) {
 			usage (argv [0]);
 			retval = 0;

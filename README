@@ -18,7 +18,7 @@ Please check the INSTALL file.
 Simple Test Tool: tf-tool
 =========================
 
-Usage: tf-tool [--acquire | --verify | --add-user <login> ] [--verbose] [--no-init]
+Usage: tf-tool [--acquire | --verify | --add-user <login> ] [--verbose] [--force-init]
 
 To acquire a fingerprint run 'tf-tool --acquire'.  You will be prompted to
 swipe your finger.  It needs three successful swipes to get a fingerprint.
@@ -34,9 +34,12 @@ It is likely that you have to run 'tf-tool' as root as it needs to access the
 USB device.  On most distribution the device node can not be accessed by a
 regular user.
 
-With some older revisions of the fingerprint reader it is necessary to execute
-the program 'tf-init' once.  Afterwards 'tf-tool' can be used with the switch
-'--no-init'.  E.g. 'tf-tool --acquire --no-init'.
+With some revisions of the fingerprint reader it is necessary to execute the
+program 'tf-init' once in order to acquire a fingerprint using 'tf-tool' after-
+wards.
+
+If you fail to acquire a fingerprint using 'tf-tool' try running with the
+'--force-init' switch.
 
 The switch '--add-user' is only available if ThinkFinger was built with PAM
 support.
