@@ -47,8 +47,8 @@ Instructions For SVN
 
 If you are compiling from an SVN checkout, the first time you also need:
 
-- autoconf (http://www.gnu.org/software/autoconf/)
-- automake (http://www.gnu.org/software/automake/)
+- autoconf, version >= 2.54 (http://www.gnu.org/software/autoconf/)
+- automake, version >= 1.7.9 (http://www.gnu.org/software/automake/)
 
 And before the './configure' script run:
 
