@@ -1,8 +1,7 @@
  /*   tf-test - A simple example for libthinkfinger
   *
-  *   Fingerprint scanner driver for SGS Thomson Microelectronics fingerprint
-  *   reader (found in IBM/Lenovo ThinkPads and IBM/Lenovo USB keyboards with
-  *   built-in fingerprint reader).
+  *   ThinkFinger - A driver for the UPEK/SGS Thomson Microelectronics
+  *   fingerprint reader.
   *
   *   Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>
   *
@@ -31,26 +30,26 @@
 #include <config.h>
 #include <libthinkfinger.h>
 
-#define MODE_ACQUIRE 1
-#define MODE_VERIFY  2
-#define MAX_USER     32
-#define MAX_PATH     256
+#define MODE_UNDEFINED 0
+#define MODE_ACQUIRE   1
+#define MODE_VERIFY    2
+#define MAX_USER       32
+#define MAX_PATH       256
 
 #define DEFAULT_BIR_PATH "/tmp/test.bir"
 #define BIR_EXTENSION    ".bir"
 #define BANNER           "\n"PACKAGE_STRING " ("PACKAGE_BUGREPORT")\n" "Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>\n"
 
 #if BUILD_PAM
-const char* usage_string = "[--acquire | --verify | --add-user <login>] [--verbose] [--force-init]";
+const char* usage_string = "[--acquire | --verify | --add-user <login>] [--verbose]";
 #else
-const char* usage_string = "[--acquire | --verify] [--verbose] [--force-init]";
+const char* usage_string = "[--acquire | --verify] [--verbose]";
 #endif
 
 typedef struct {
 	int mode;
 	char bir[MAX_PATH];
 	_Bool verbose;
-	_Bool init_scanner;
 	int swipe_success;
 	int swipe_failed;
 } s_tfdata;
@@ -113,11 +112,11 @@ callback (libthinkfinger_state state, void *data)
 				printf (" done.\nStoring data (%s)...", tfdata->bir);
 				fflush (stdout);
 				break;
-			case TF_STATE_SWIPE_SUCCESS:
-				print_status (++tfdata->swipe_success, 3, tfdata->swipe_failed);
-				break;
 			case TF_STATE_SWIPE_FAILED:
 				print_status (tfdata->swipe_success, 3, ++tfdata->swipe_failed);
+				break;
+			case TF_STATE_SWIPE_SUCCESS:
+				print_status (++tfdata->swipe_success, 3, tfdata->swipe_failed);
 				break;
 			case TF_STATE_SWIPE_0:
 				print_status (tfdata->swipe_success, 3, tfdata->swipe_failed);
@@ -137,11 +136,11 @@ callback (libthinkfinger_state state, void *data)
 				print_status (tfdata->swipe_success, 1, tfdata->swipe_failed);
 				printf (" done.\n");
 				break;
-			case TF_STATE_SWIPE_SUCCESS:
-				print_status (++tfdata->swipe_success, 1, tfdata->swipe_failed);
-				break;
 			case TF_STATE_SWIPE_FAILED:
 				print_status (tfdata->swipe_success, 1, ++tfdata->swipe_failed);
+				break;
+			case TF_STATE_SWIPE_SUCCESS:
+				print_status (++tfdata->swipe_success, 1, tfdata->swipe_failed);
 				break;
 			case TF_STATE_SWIPE_0:
 				print_status (tfdata->swipe_success, 1, tfdata->swipe_failed);
@@ -181,7 +180,7 @@ acquire (const s_tfdata *tfdata)
 
 	printf ("Initializing...");
 	fflush (stdout);
-	tf = libthinkfinger_init (tfdata->init_scanner);
+	tf = libthinkfinger_new ();
 	if (tf == NULL) {
 		retval = 1;
 		goto out;
@@ -200,6 +199,7 @@ acquire (const s_tfdata *tfdata)
 			retval = 1;
 			break;
 		case TF_RESULT_COMM_FAILED:
+			printf ("Error: Could not acquire fingerprint.\n");
 			retval = 1;
 			break;
 		default:
@@ -221,7 +221,7 @@ verify (const s_tfdata *tfdata)
 
 	printf ("Initializing...");
 	fflush (stdout);
-	tf = libthinkfinger_init (tfdata->init_scanner);
+	tf = libthinkfinger_new ();
 	if (tf == NULL) {
 		retval = 1;
 		goto out;
@@ -233,13 +233,14 @@ verify (const s_tfdata *tfdata)
 
 	tf_state = libthinkfinger_verify (tf);
 	switch (tf_state) {
-		case TF_RESULT_VERIFY_SUCCESS:
+		case TF_STATE_VERIFY_SUCCESS:
 			retval = 0;
 			break;
-		case TF_RESULT_VERIFY_FAILED:
+		case TF_STATE_VERIFY_FAILED:
 			retval = 1;
 			break;
 		case TF_RESULT_COMM_FAILED:
+			printf ("Error: Could not verify fingerprint.\n");
 			retval = 1;
 			break;
 		default:
@@ -271,22 +272,51 @@ main (int argc, char *argv[])
 		goto out;
 	}
 
+	tfdata.mode = MODE_UNDEFINED;
 	tfdata.verbose = false;
-	tfdata.init_scanner = false;
 	tfdata.swipe_success = 0;
 	tfdata.swipe_failed = 0;
 
 	for (i = 1; i < argc; i++) {
 		char *arg = argv[i];
 		if (!strcmp (arg, "--acquire")) {
+			if (tfdata.mode != MODE_UNDEFINED) {
+				printf ("Mode already set.\n");
+				usage (argv [0]);
+				retval = 1;
+				goto out;
+			}
 			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
 			tfdata.mode = MODE_ACQUIRE;
 		} else if (!strcmp (arg, "--verify")) {
+			if (tfdata.mode != MODE_UNDEFINED) {
+				printf ("Mode already set.\n");
+				usage (argv [0]);
+				retval = 1;
+				goto out;
+			}
+			if (access (DEFAULT_BIR_PATH, R_OK) != 0) {
+				perror ("Could not access " DEFAULT_BIR_PATH);
+				retval = 1;
+				goto out;
+			}
 			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
 			tfdata.mode = MODE_VERIFY;
 #if BUILD_PAM
 		} else if (!strcmp (arg, "--add-user")) {
-			user = argv[++i];
+			if (tfdata.mode != MODE_UNDEFINED) {
+				printf ("Mode already set.\n");
+				usage (argv [0]);
+				retval = 1;
+				goto out;
+			}
+			if (++i == argc) {
+				printf ("User missing.\n");
+				usage (argv [0]);
+				retval = 1;
+				goto out;
+			}
+			user = argv[i];
 			if (strlen (user) > MAX_USER) {
 				printf ("User name \"%s\" is too long (maximum %i chars).\n", user, MAX_USER);
 				retval = 1;
@@ -314,8 +344,6 @@ main (int argc, char *argv[])
 		} else if (!strcmp (arg, "--verbose")) {
 			printf ("Running in verbose mode.\n");
 			tfdata.verbose = true;
-		} else if (!strcmp (arg, "--force-init")) {
-			tfdata.init_scanner = true;
 		} else if (!strcmp (arg, "--help") || !strcmp (arg, "-h")) {
 			usage (argv [0]);
 			retval = 0;
@@ -326,6 +354,13 @@ main (int argc, char *argv[])
 			retval = 1;
 			goto out;
 		}
+	}
+
+	if (tfdata.mode == MODE_UNDEFINED) {
+		printf ("Mode undefined.\n");
+		usage (argv [0]);
+		retval = 1;
+		goto out;
 	}
 
 	if (tfdata.verbose == true) {
