@@ -1,10 +1,11 @@
 /*
- *   Fingerprint scanner driver for SGS Thomson Microelectronics fingerprint
- *   reader (found in IBM/Lenovo ThinkPads and IBM/Lenovo USB keyboards with
- *   built-in fingerprint reader).
+ *   ThinkFinger - A driver for the UPEK/SGS Thomson Microelectronics
+ *   fingerprint reader.
  *
  *   Copyright (C) 2006 Pavel Machek <pavel@suse.cz>
  *                      Timo Hoenig <thoenig@suse.de>
+ *
+ *   Copyright (C) 2007 Timo Hoenig <thoenig@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,6 +41,7 @@ extern "C" {
  *  Thomson Microelectronics fingerprint reader
  * @{ */
 
+typedef unsigned int   u32;
 typedef unsigned short u16;
 typedef unsigned char u8;
 
@@ -128,15 +130,13 @@ int libthinkfinger_acquire(libthinkfinger *tf);
 int libthinkfinger_verify(libthinkfinger *tf);
 
 
-/** @brief initialize the fingerprint scanner
+/** @brief create a struct libthinkfinger
  *
- * initializes the fingerprint scanner and returns a struct libthinkfinger on success
- *
- * @param b boolean to tell whether libthinkfinger should initialize the fingerprint scanner
+ * create a struct libthinkfinger and return a pointer to struct libthinkfinger on success
  *
  * @return pointer to sturct libthinkfinger on success, else NULL
  */
-libthinkfinger *libthinkfinger_init(_Bool init_scanner);
+libthinkfinger *libthinkfinger_new(void);
 
 /** @brief free an instance of libthinkfinger
  *
