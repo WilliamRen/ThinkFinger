@@ -182,7 +182,6 @@ static struct usb_device *_libthinkfinger_usb_device_find (void)
 {
 	struct usb_bus *usb_bus;
 	struct usb_device *dev;
-	int bla = 1;
 
 	usb_init ();
 	usb_find_busses ();
@@ -192,11 +191,8 @@ static struct usb_device *_libthinkfinger_usb_device_find (void)
 	for (usb_bus = usb_busses; usb_bus; usb_bus = usb_bus->next) {
 		for (dev = usb_bus->devices; dev; dev = dev->next) {
 			if ((dev->descriptor.idVendor == VENDOR_ID) &&
-			    (dev->descriptor.idProduct == PRODUCT_ID)) {
-				if (bla == 1)	
-					return dev;
-				bla = 1;
-			}
+			    (dev->descriptor.idProduct == PRODUCT_ID))
+				return dev;
 		}
 	}
 	return NULL;
@@ -244,18 +240,10 @@ _libthinkfinger_usb_init (libthinkfinger *tf)
 		printf ("Error: Setting up USB device failed.\n");
 		goto out;
 	}
+
 	ret_val = 0;
 out:
 	return ret_val;
-}
-
-static void
-_libthinkfinger_printhex (unsigned char *data, int len)
-{
-	int i;
-	for (i=0; i < len; i++)
-		fprintf (stdout, "%02x%s", data[i], (i+1)%4 ? " " : " ");
-	fprintf (stdout, "\n");
 }
 
 static void
@@ -305,26 +293,33 @@ out:
 	return;
 }
 
-static void
+static int
 _libthinkfinger_store_fingerprint (libthinkfinger *tf, unsigned char *data)
 {
+	int ret_val = -1;
+
 	if ((tf == NULL) || (tf->fd < 0)) {
 		printf ("Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
-	write (tf->fd, data+18, 0x40-18);
-	tf->write_fingerprint = true;
+	if (write (tf->fd, data+18, 0x40-18) < 0) {
+		perror ("Error");
+		goto out;
+	}
 
+	tf->write_fingerprint = true;
+	ret_val = 0;
 out:
-	return;
+	return ret_val;
 }
 
 /* returns 1 if it understood the packet */
 static int
 _libthinkfinger_parse (libthinkfinger *tf, unsigned char *inbuf)
 {
-	int ret_val = 0;
+	int ret_val = -1;
+
 	libthinkfinger_state state = tf->state;
 	const char fingerprint_is[] = {
 		0x00, 0x00, 0x00, 0x02, 0x12, 0xff, 0xff, 0xff,
@@ -339,8 +334,9 @@ _libthinkfinger_parse (libthinkfinger *tf, unsigned char *inbuf)
 	switch (inbuf[7]) {
 	case 0x28:
 		if (!memcmp(inbuf+9, fingerprint_is, 9)) {
-			_libthinkfinger_store_fingerprint(tf, inbuf);
-			ret_val = 0;
+			ret_val = _libthinkfinger_store_fingerprint (tf, inbuf);
+			if (ret_val < 0)
+				tf->state = TF_STATE_ACQUIRE_FAILED;
 			break;
 		}
 		switch (inbuf[6]) {
@@ -370,12 +366,11 @@ _libthinkfinger_parse (libthinkfinger *tf, unsigned char *inbuf)
 		ret_val = 1;
 		break;
 	default:
-		ret_val =0;
+		ret_val = 0;
 	}
 
 	if (tf->state != state && tf->cb != NULL)
 		tf->cb (tf->state, tf->cb_data);
-
 out:
 	return ret_val;
 }
@@ -406,8 +401,10 @@ _libthinkfinger_ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, 
 			if (tf->cb != NULL)
 				tf->cb (tf->state, tf->cb_data);
 			goto out_result;
-		} else
-			write (tf->fd, inbuf, real_len);
+		} else {
+			if (write (tf->fd, inbuf, real_len) < 0)
+				perror ("Error");
+		}
 	}
 	if (flags & PARSE) {
 		if (_libthinkfinger_parse (tf, inbuf))
@@ -546,7 +543,6 @@ libthinkfinger_acquire (libthinkfinger *tf)
 	}
 
 	close (tf->fd);
-
 out:
 	return ret_val;
 }
@@ -563,7 +559,6 @@ libthinkfinger_set_file (libthinkfinger *tf, const char *file)
 
 	tf->file = file;
 	ret_val = 0;
-
 out:
 	return ret_val;
 }
@@ -581,7 +576,6 @@ libthinkfinger_set_callback (libthinkfinger *tf, libthinkfinger_state_cb cb, voi
 	tf->cb = cb;
 	tf->cb_data = cb_data;
 	ret_val = 0;
-
 out:
 	return ret_val;
 }
