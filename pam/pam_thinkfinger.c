@@ -1,7 +1,7 @@
-/*
- *   PAM module for libthinkfinger which supports the SGS Thomson
- *   Microelectronics fingerprint reader (found in IBM/Lenovo ThinkPads
- *   and IBM/Lenovo USB keyboards with built-in fingerprint reader).
+/*   ThinkFinger Pluggable Authentication Module
+ *
+ *   PAM module for libthinkfinger which is a driver for the UPEK/SGS Thomson
+ *   Microelectronics fingerprint reader.
  *
  *   Copyright (C) 2007 Timo Hoenig <thoenig@suse.de>, <thoenig@nouse.net>
  *
@@ -140,7 +140,7 @@ int pam_sm_authenticate (pam_handle_t *pamh,int flags, int argc, const char **ar
 	if (pam_thinkfinger_check_user (pam_thinkfinger.user))
 		goto out;
 
-	pam_thinkfinger.tf = libthinkfinger_init (false);
+	pam_thinkfinger.tf = libthinkfinger_new ();
 	if (!pam_thinkfinger.tf)
 		goto out;
 
