@@ -1,14 +1,28 @@
 ThinkFinger
 ===========
 
-ThinkFinger is a driver for the SGS Thomson Microelectronics fingerprint reader
-found in most IBM/Lenovo ThinkPads.
+ThinkFinger is a driver for the UPEK/SGS Thomson Microelectronics fingerprint
+reader (USB ID 0483:2016).  The device is being found either as a standalone
+USB device, built into USB keyboards or built into laptops.  The following
+laptop vendors are using the device:
 
-It is devided into two parts: libthinkfinger and pam_thinkfinger.
+- Dell
+- IBM/Lenovo
+- Toshiba
+
+Toshiba is shipping their laptops either with the UPEK/SGS Thomson Micro-
+electronics fingerprint reader or with a fingerprint reader built by AuthenTec.
+The AuthenTec fingerprint reader is *not* supported by ThinkFinger.
+
+SONY laptops with the UPEK/SGS Thomson Microelectronics fingerprint
+reader are not supported.
+
+ThinkFinger is devided into two parts: libthinkfinger and pam_thinkfinger.
 
 libthinkfinger is a library to be used in order to communicate with the finger-
-print reader.  The utility 'tf-tool' can be used to acquire and to verify
-fingerprints.
+print reader.
+
+The utility 'tf-tool' can be used to acquire and to verify fingerprints.
 
 Installation Instructions
 =========================
@@ -18,7 +32,7 @@ Please check the INSTALL file.
 Simple Test Tool: tf-tool
 =========================
 
-Usage: tf-tool [--acquire | --verify | --add-user <login> ] [--verbose] [--force-init]
+Usage: tf-tool [--acquire | --verify | --add-user <login> ] [--verbose]
 
 To acquire a fingerprint run 'tf-tool --acquire'.  You will be prompted to
 swipe your finger.  It needs three successful swipes to get a fingerprint.
@@ -33,13 +47,6 @@ Notes:
 It is likely that you have to run 'tf-tool' as root as it needs to access the
 USB device.  On most distribution the device node can not be accessed by a
 regular user.
-
-With some revisions of the fingerprint reader it is necessary to execute the
-program 'tf-init' once in order to acquire a fingerprint using 'tf-tool' after-
-wards.
-
-If you fail to acquire a fingerprint using 'tf-tool' try running with the
-'--force-init' switch.
 
 The switch '--add-user' is only available if ThinkFinger was built with PAM
 support.
@@ -66,9 +73,6 @@ in '/etc/pam_thinkfinger/'.
 E.g. if the user 'bob' wants to login using his fingerprint, his fingerprint
 needs to be stored at '/etc/pam_thinkfinger/bob.bir'.  See [2] for a more
 detailed example.
-
-On some systems it is required to execute 'tf-init' once to initialize the
-fingerprint reader.
 
 PAM Compatibility
 =================
@@ -120,5 +124,3 @@ Please swipe your finger (successful swipes 3/3, failed swipes: 0)... done.
 Storing data (/etc/pam_thinkfinger/bob)... done.
 
 Now 'bob' can authenticate himself by swiping his finger.
-
-
