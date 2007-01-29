@@ -160,15 +160,15 @@ usage (char *name)
 static _Bool
 user_exists (const char* login)
 {
-	_Bool retval = false;
+	_Bool ret_val = false;
 
 	struct passwd *p  = getpwnam (login);
 	if (p == NULL)
-		retval = false;
+		ret_val = false;
 	else
-		retval = true;
+		ret_val = true;
 
-	return retval;
+	return ret_val;
 }
 
 static int
@@ -176,13 +176,13 @@ acquire (const s_tfdata *tfdata)
 {
 	libthinkfinger *tf;
 	int tf_state;
-	int retval = 0;
+	int ret_val = 0;
 
 	printf ("Initializing...");
 	fflush (stdout);
 	tf = libthinkfinger_new ();
 	if (tf == NULL) {
-		retval = 1;
+		ret_val = -1;
 		goto out;
 	}
 	printf (" done.\n");
@@ -193,23 +193,23 @@ acquire (const s_tfdata *tfdata)
 	tf_state = libthinkfinger_acquire (tf);
 	switch (tf_state) {
 		case TF_STATE_ACQUIRE_SUCCESS:
-			retval = 0;
+			ret_val = 0;
 			break;
 		case TF_STATE_ACQUIRE_FAILED:
-			retval = 1;
+			ret_val = -1;
 			break;
 		case TF_RESULT_COMM_FAILED:
 			printf ("Error: Could not acquire fingerprint.\n");
-			retval = 1;
+			ret_val = -1;
 			break;
 		default:
-			retval = 1;
+			ret_val = -1;
 			break;
 	}
 
 	libthinkfinger_free (tf);
 out:
-	return retval;
+	return ret_val;
 }
 
 static int
@@ -217,13 +217,13 @@ verify (const s_tfdata *tfdata)
 {
 	libthinkfinger *tf;
 	int tf_state;
-	int retval = 0;
+	int ret_val = 0;
 
 	printf ("Initializing...");
 	fflush (stdout);
 	tf = libthinkfinger_new ();
 	if (tf == NULL) {
-		retval = 1;
+		ret_val = -1;
 		goto out;
 	}
 	printf (" done.\n");
@@ -234,30 +234,32 @@ verify (const s_tfdata *tfdata)
 	tf_state = libthinkfinger_verify (tf);
 	switch (tf_state) {
 		case TF_STATE_VERIFY_SUCCESS:
-			retval = 0;
+			ret_val = 0;
 			break;
 		case TF_STATE_VERIFY_FAILED:
-			retval = 1;
+			printf ("TF_STATE_VERIFY_FAILED\n");
+			ret_val = -1;
 			break;
 		case TF_RESULT_COMM_FAILED:
 			printf ("Error: Could not verify fingerprint.\n");
-			retval = 1;
+			ret_val = -1;
 			break;
 		default:
-			retval = 1;
+			printf ("dwfaultTF_STATE_VERIFY_FAILED\n");
+			ret_val = -1;
 			break;
 	}
 
 	libthinkfinger_free (tf);
 out:
-	return retval;
+	return ret_val;
 }
 
 int
 main (int argc, char *argv[])
 {
 	int i;
-	int retval = 0;
+	int ret_val = 0;
 	s_tfdata tfdata;
 #if BUILD_PAM
 	int path_len = 0;
@@ -268,7 +270,7 @@ main (int argc, char *argv[])
 
 	if (argc == 1) {
 		usage (argv[0]);
-		retval = 1;
+		ret_val = -1;
 		goto out;
 	}
 
@@ -283,7 +285,7 @@ main (int argc, char *argv[])
 			if (tfdata.mode != MODE_UNDEFINED) {
 				printf ("Mode already set.\n");
 				usage (argv [0]);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
@@ -292,12 +294,12 @@ main (int argc, char *argv[])
 			if (tfdata.mode != MODE_UNDEFINED) {
 				printf ("Mode already set.\n");
 				usage (argv [0]);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			if (access (DEFAULT_BIR_PATH, R_OK) != 0) {
 				perror ("Could not access " DEFAULT_BIR_PATH);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
@@ -307,35 +309,35 @@ main (int argc, char *argv[])
 			if (tfdata.mode != MODE_UNDEFINED) {
 				printf ("Mode already set.\n");
 				usage (argv [0]);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			if (++i == argc) {
 				printf ("User missing.\n");
 				usage (argv [0]);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			user = argv[i];
 			if (strlen (user) > MAX_USER) {
 				printf ("User name \"%s\" is too long (maximum %i chars).\n", user, MAX_USER);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			if (user_exists (user) == false ) {
 				printf ("The user \"%s\" does not exist.\n", user);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			if (access (PAM_BIRDIR, R_OK|W_OK|X_OK) != 0) {
 				perror ("Could not access " PAM_BIRDIR);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user) + strlen (BIR_EXTENSION);
 			if (path_len > MAX_PATH-1) {
 				printf ("Path \"%s/%s%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, BIR_EXTENSION, MAX_PATH-1);
-				retval = 1;
+				ret_val = -1;
 				goto out;
 			}
 			snprintf (tfdata.bir, MAX_PATH-1, "%s/%s%s", PAM_BIRDIR, user, BIR_EXTENSION);
@@ -346,12 +348,12 @@ main (int argc, char *argv[])
 			tfdata.verbose = true;
 		} else if (!strcmp (arg, "--help") || !strcmp (arg, "-h")) {
 			usage (argv [0]);
-			retval = 0;
+			ret_val = 0;
 			goto out;
 		} else {
 			printf ("Unknown option \"%s\".\n", arg);
 			usage (argv [0]);
-			retval = 1;
+			ret_val = -1;
 			goto out;
 		}
 	}
@@ -359,7 +361,7 @@ main (int argc, char *argv[])
 	if (tfdata.mode == MODE_UNDEFINED) {
 		printf ("Mode undefined.\n");
 		usage (argv [0]);
-		retval = 1;
+		ret_val = -1;
 		goto out;
 	}
 
@@ -370,13 +372,13 @@ main (int argc, char *argv[])
 
 	}
 	if (tfdata.mode == MODE_ACQUIRE) {
-		retval = acquire (&tfdata);
+		ret_val = acquire (&tfdata);
 	} else if (tfdata.mode == MODE_VERIFY) {
-		retval = verify (&tfdata);
+		ret_val = verify (&tfdata);
 	} else {
 		usage (argv[0]);
-		retval = 1;
+		ret_val = -1;
 	}
 out:
-	exit (retval);
+	exit (ret_val);
 }
