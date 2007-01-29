@@ -148,7 +148,6 @@ AC_CONFIG_FILES([Makefile
 		libthinkfinger/Makefile
 		libthinkfinger/libthinkfinger.pc
 		pam/Makefile
-		tf-init/Makefile
 		tf-tool/Makefile
 ])
 
