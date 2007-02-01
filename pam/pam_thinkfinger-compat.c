@@ -129,7 +129,7 @@ int pam_vprompt (pam_handle_t *pamh, int style, char **response, const char *fmt
 	}
 
 	if (vasprintf (&msgbuf, fmt, args) < 0) {
-		pam_syslog(pamh, LOG_ERR, "vasprintf: %m");
+		pam_syslog (pamh, LOG_ERR, "vasprintf: %m");
 		return PAM_BUF_ERR;
 	}
 
@@ -144,7 +144,7 @@ int pam_vprompt (pam_handle_t *pamh, int style, char **response, const char *fmt
 		*response = pam_resp == NULL ? NULL : pam_resp->resp;
 	else if (pam_resp && pam_resp->resp) {
 			_pam_overwrite (pam_resp->resp);
-			_pam_drop( pam_resp->resp);
+			_pam_drop (pam_resp->resp);
 		}
 	_pam_overwrite (msgbuf);
 	_pam_drop (pam_resp);
