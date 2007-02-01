@@ -21,15 +21,19 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include <config.h>
+
 #include <stdio.h>
 #include <termios.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <libthinkfinger.h>
-#include <security/pam_ext.h>
 #include <security/pam_modules.h>
-
-#include <config.h>
+#ifdef HAVE_OLD_PAM
+#include "pam_thinkfinger-compat.h"
+#else
+#include <security/pam_ext.h>
+#endif
 
 #define MAX_PATH    256
 #define SWIPE_RETRY 3
@@ -167,6 +171,11 @@ int pam_sm_setcred (pam_handle_t *pamh,int flags,int argc, const char **argv)
 	return PAM_SUCCESS;
 }
 
+PAM_EXTERN
+int pam_sm_chauthtok (pam_handle_t *pamh, int flags,int argc, const char **argv)
+{
+	return PAM_SUCCESS;
+}
 
 #ifdef PAM_STATIC
 

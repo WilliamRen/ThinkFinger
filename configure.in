@@ -33,6 +33,7 @@ AC_CONFIG_SRCDIR([libthinkfinger/libthinkfinger.c])
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
+AM_PROG_CC_C_O
 
 # Checks for header files.
 AC_CHECK_HEADERS([unistd.h string.h stdio.h stdlib.h errno.h usb.h])
@@ -47,6 +48,10 @@ if test "x$enable_pam" != "xno"; then
 	AC_CHECK_LIB(pam, pam_start, [PAM_LIBS="-lpam"], AC_MSG_ERROR([libpam missing]))
 	AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS="-lpthread"], AC_MSG_ERROR([libpthread missing]))
 	AC_DEFINE(BUILD_PAM,1,[Define to 1 if you want to build with PAM support.])
+	AC_CHECK_LIB(pam, pam_prompt, , HAVE_OLD_PAM=yes
+				AC_DEFINE(HAVE_OLD_PAM,1,
+				[Defined if pam_prompt function does not exist in libpam]))
+	AM_CONDITIONAL(HAVE_OLD_PAM, test "x$HAVE_OLD_PAM" = "xyes")
 fi
 
 # AC_ARG_ENABLE SECUREDIR

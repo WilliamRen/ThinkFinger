@@ -11,8 +11,7 @@ The following software must be installed:
 - the GCC compiler (http://www.gnu.org/software/gcc/)
 - libtool (http://www.gnu.org/software/libtool/)
 - pkg-config (http://pkgconfig.freedesktop.org)
-- the Linux-PAM, development files, version >= 0.99.1.0
-  (http://www.kernel.org/pub/linux/libs/pam/)
+- the Linux-PAM, development files (http://www.kernel.org/pub/linux/libs/pam/)
 - libusb, development files, version >= 0.1.12 (http://libusb.sourceforge.net/)
 
 To have access to the optional documentation, you also need:

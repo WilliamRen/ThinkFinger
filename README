@@ -61,7 +61,7 @@ PAM modules are stored in '/lib/security'.
 
 In order to use pam_thinkfinger, PAM needs to be aware of the module.  To
 achieve this please edit '/etc/pam.d/common-auth'.  You are required to add
-the following directive:
+the following directive before any pam_unix or pam_unix2 directives:
 
      auth     sufficient     pam_thinkfinger.so
 
@@ -73,6 +73,20 @@ in '/etc/pam_thinkfinger/'.
 E.g. if the user 'bob' wants to login using his fingerprint, his fingerprint
 needs to be stored at '/etc/pam_thinkfinger/bob.bir'.  See [2] for a more
 detailed example.
+
+Notes:
+
+If your PAM uses the pam_unix module, you need to pass a specific argument in
+the /etc/pam.d/common-auth directive:
+
+     auth     required     pam_unix.so try_first_pass
+
+Otherwise, the password entered at the pam_thinkfinger prompt is not considered
+by pam_unix.  This is only the case for pam_unix, because pam_unix2
+automatically enables the try_first_pass argument by default.  More information
+are available in the Linux-PAM documentation at:
+
+  http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/sag-pam_unix.html
 
 PAM Compatibility
 =================
