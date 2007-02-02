@@ -1,3 +1,5 @@
+INSTALL_PROGRAM= @INSTALL_PROGRAM@ -m 644
+
 pam_PROGRAMS = pam_thinkfinger.so
 pamdir = $(SECUREDIR)
 
