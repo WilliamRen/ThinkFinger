@@ -1,0 +1,71 @@
+.\" -*- nroff -*-
+.\" Copyright (C) 2007 Luca Capello <luca@pca.it>
+.\"
+
+.TH THINKFINGER 1 "Feb 1, 2007"
+
+.SH NAME
+tf-tool \- Utility to acquire and to verify fingerprints
+
+.SH SYNOPSIS
+.B tf-tool
+.RI [ OPTION ]
+
+.SH DESCRIPTION
+ThinkFinger is a driver for the UPEK/SGS Thomson Microelectronics
+fingerprint reader (USB ID 0483:2016).  The device is being found
+either as a standalone USB device, built into USB keyboards or built
+into laptops (mostly Dell, IBM/Lenovo and Toshiba).
+.P
+.B tf-tool
+is the utility used to acquire and to verify the fingerprints.
+
+.SH OPTIONS
+.TP
+.BI \--acquire
+Acquire a fingerprint.  You will be prompted to swipe your finger.  It
+needs three successful swipes to get a fingerprint.  This fingerprint
+is stored in \fI/tmp/test.bir\fP.
+.TP
+.BI \--verify
+Verify a fingerprint.  \fBtf-tool\fP will read a fingerprint image
+from \fI/tmp/test.bir\fP and compare that with the finger which is being
+swiped.
+.TP
+.BI \--add-user\ "login"
+Acquire a fingerprint for the user identified by login.  If this user
+or the bir folder \fI/etc/pam_thinkfinger\fP do not exist, exits with
+an error.  If the acquiring process is successful, the fingerprint is
+stored in the bir folder as \fI/etc/pam_thinkfinger/login.bir\fP.
+This option is available only when ThinkFinger has been compiled with
+PAM support.
+.TP
+.BI \--verbose
+Add more output messages.
+
+.SH FILES
+.PD 0
+.TP
+.I /etc/pam_thinkfinger
+The default folder where the fingerprint for login users are stored
+.TP
+.I /tmp/tmp.bir
+The file used when acquiring or verifying a fingerprint
+.PD
+
+.SH BUGS
+Please report bugs to <thinkfinger-devel@lists.sourceforge.net>.
+
+.SH SEE ALSO
+.BR pam_thinkfinger (8)
+
+.BR \fIhttp://thinkfinger.sourceforge.net/\f
+
+.SH AUTHORS
+ThinkFinger was written by Timo Hoenig <thoenig@suse.de> and Pavel
+Machek <pavel@suse.cz> and is licensed under the terms of the GNU
+General Public License (GPL).
+
+This manual page was written by Luca Capello <luca@pca.it>.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License (GPL).

@@ -84,7 +84,7 @@ else
 fi
 exec_prefix=$EXEC_PREFIX
 
-# AC_SUBST PREFIX, LIBDIR, BINDIR, SBINDIR SECUREDIR and BIRDIR
+# AC_SUBST PREFIX, LIBDIR, BINDIR, SBINDIR, MANDIR, SECUREDIR and BIRDIR
 PREFIX_TMP="$prefix"
 PREFIX=`eval echo $PREFIX_TMP`
 AC_SUBST(PREFIX)
@@ -116,6 +116,14 @@ else
 fi
 BIRDIR=`eval echo $BIRDIR_TMP`
 AC_SUBST(BIRDIR)
+
+if ! test -z "$mandir" ; then
+	MANDIR_TMP=`eval echo "$mandir"`
+else
+	MANDIR_TMP=`eval echo $datadir/man`
+fi
+MANDIR=`eval echo \"$MANDIR_TMP\"`
+AC_SUBST(MANDIR)
 
 # AC_DEFINE PAM_BIRDIR
 AC_DEFINE_UNQUOTED(PAM_BIRDIR,"${BIRDIR}",[Define to the directory where biometric identification records (bir files) are being stored.])
@@ -165,6 +173,7 @@ echo "
  + libdir:		${LIBDIR}
  + bindir:		${BINDIR}
  + sbindir:		${SBINDIR}
+ + mandir:		${MANDIR}
 
  + cflags:		${CFLAGS}
  + libusb:		${USB_LIBS}

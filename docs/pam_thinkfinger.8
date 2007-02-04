@@ -1,0 +1,46 @@
+.\" -*- nroff -*-
+.\" Copyright (C) 2007 Luca Capello <luca@pca.it>
+.\"
+.TH PAM_THINKFINGER 8 "Feb 1, 2007"
+
+.SH NAME
+pam_thinkfinger - PAM module for fingerprint authentication through
+libthinkfinger
+
+.SH DESCRIPTION
+ThinkFinger is a driver for the UPEK/SGS Thomson Microelectronics
+fingerprint reader (USB ID 0483:2016).  The device is being found
+either as a standalone USB device, built into USB keyboards or built
+into laptops (mostly Dell, IBM/Lenovo and Toshiba).
+.P
+.B pam_thinkfinger
+is the PAM module responsible for fingerprint authentication through
+libthinkfinger.  The module does only trigger for users which have
+deposited their fingerprint in the \fI/etc/pam_thinkfinger\fP folder.
+
+.SH FILES
+.PD 0
+.TP
+.I /etc/pam_thinkfinger
+The default folder where the fingerprint for login users are stored
+.TP
+.I /lib/security
+The default folder for PAM modules
+
+.SH BUGS
+Please report bugs to <thinkfinger-devel@lists.sourceforge.net>.
+
+.SH SEE ALSO
+.BR tf-tool (1),
+.BR pam (8)
+
+.BR \fIhttp://thinkfinger.sourceforge.net/\f
+
+.SH AUTHORS
+ThinkFinger was written by Timo Hoenig <thoenig@suse.de> and Pavel
+Machek <pavel@suse.cz> and is licensed under the terms of the GNU
+General Public License (GPL).
+
+This manual page was written by Luca Capello <luca@pca.it>.
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License (GPL).
