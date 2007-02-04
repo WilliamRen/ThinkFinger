@@ -209,39 +209,36 @@ _libthinkfinger_usb_deinit (libthinkfinger *tf)
 	tf->usb_handle = NULL;
 }
 
-static int
+static libthinkfinger_init_status
 _libthinkfinger_usb_init (libthinkfinger *tf)
 {
-	int ret_val = -1;
 	struct usb_device *usb_dev;
+	libthinkfinger_init_status ret_val = TF_INIT_UNDEFINED;
 
 	usb_dev = _libthinkfinger_usb_device_find ();
 	if (usb_dev == NULL) {
-		/* device not found */
-		printf ("Error: Could not find USB device.\n");
+		ret_val = TF_INIT_USB_DEVICE_NOT_FOUND;
 		goto out;
 	}
 
 	tf->usb_handle = usb_open (usb_dev);
 	if (tf->usb_handle == NULL) {
-		/* could not open USB device */
-		printf ("Error: Could not open USB device.\n");
+		ret_val = TF_INIT_USB_OPEN_FAILED;
 		goto out;
 	}
 
 	if (usb_claim_interface (tf->usb_handle, 0) < 0) {
-		/* could not claim USB device */
-		printf ("Error: Could not claim USB device.\n");
+		ret_val = TF_INIT_USB_CLAIM_FAILED;
 		goto out;
 	}
 
 	if (_libthinkfinger_usb_hello (tf->usb_handle) < 0) {
-		/* setting up USB device failed*/
-		printf ("Error: Setting up USB device failed.\n");
+		ret_val = TF_INIT_USB_HELLO_FAILED;
 		goto out;
 	}
 
-	ret_val = 0;
+	ret_val = TF_INIT_USB_INIT_SUCCESS;
+
 out:
 	return ret_val;
 }
@@ -581,7 +578,7 @@ out:
 }
 
 libthinkfinger *
-libthinkfinger_new ()
+libthinkfinger_new (libthinkfinger_init_status *init_status)
 {
 	libthinkfinger *tf;
 
@@ -589,7 +586,7 @@ libthinkfinger_new ()
 
 	if (tf == NULL) {
 		/* failed to allocate memory */
-		printf ("Error: Could not allocate memory\n");
+		*init_status = TF_INIT_NO_MEMORY;
 		goto out;
 	}
 
@@ -603,10 +600,13 @@ libthinkfinger_new ()
 	tf->cb = NULL;
 	tf->cb_data = NULL;
 
-	if (_libthinkfinger_usb_init (tf) != 0)
+	*init_status = _libthinkfinger_usb_init (tf);
+	if (*init_status != TF_INIT_USB_INIT_SUCCESS)
 		goto outfree;
-
-	goto out;
+	else {
+		*init_status = TF_INIT_SUCCESS;
+		goto out;
+	}
 
 outfree:
 	libthinkfinger_free (tf);

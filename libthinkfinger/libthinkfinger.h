@@ -43,40 +43,51 @@ extern "C" {
 
 typedef unsigned int   u32;
 typedef unsigned short u16;
-typedef unsigned char u8;
+typedef unsigned char  u8;
 
 typedef struct libthinkfinger_s libthinkfinger;
 
 typedef enum {
-	TF_TASK_IDLE      = 0x00, // idle
-	TF_TASK_INIT      = 0x01, // initialization
-	TF_TASK_ACQUIRE   = 0x02, // acquirement
-	TF_TASK_VERIFY    = 0x03, // verification
-	TF_TASK_UNDEFINED = 0xff  // undefined
+	TF_INIT_SUCCESS              = 0x00, // initialization succeeded
+	TF_INIT_NO_MEMORY            = 0x01, // couldn't allocate memory
+	TF_INIT_USB_INIT_SUCCESS     = 0x02, // USB initialization succeeded
+	TF_INIT_USB_DEVICE_NOT_FOUND = 0x03, // USB device not found
+	TF_INIT_USB_OPEN_FAILED      = 0x04, // USB device could not be opened
+	TF_INIT_USB_CLAIM_FAILED     = 0x05, // USB device could not be claimed
+	TF_INIT_USB_HELLO_FAILED     = 0x06, // could not send HELLO sequence to USB device
+	TF_INIT_UNDEFINED            = 0xff  // undefined
+} libthinkfinger_init_status;
+
+typedef enum {
+	TF_TASK_IDLE                 = 0x00, // idle
+	TF_TASK_INIT                 = 0x01, // initialization
+	TF_TASK_ACQUIRE              = 0x02, // acquirement
+	TF_TASK_VERIFY               = 0x03, // verification
+	TF_TASK_UNDEFINED            = 0xff  // undefined
 } libthinkfinger_task;
 
 typedef enum {
-	TF_STATE_INITIAL          = 0x00, // initial state
-	TF_STATE_UNCHANGED        = 0x01, // no change
-	TF_STATE_SWIPE_0          = 0x02, // first swipe
-	TF_STATE_SWIPE_1          = 0x03, // second swipe
-	TF_STATE_SWIPE_2          = 0x04, // thrid swipe
-	TF_STATE_SWIPE_SUCCESS    = 0x05, // successfull swipe
-	TF_STATE_SWIPE_FAILED     = 0x06, // bad swipe
-	TF_STATE_ENROLL_SUCCESS   = 0x07, // enroll failed
-	TF_STATE_ACQUIRE_SUCCESS  = 0x08, // acquirement successful
-	TF_STATE_ACQUIRE_FAILED   = 0x09, // acquirement failed
-	TF_STATE_VERIFY_SUCCESS   = 0x0a, // verification successful
-	TF_STATE_VERIFY_FAILED    = 0x0b, // verification failed
-	TF_STATE_COMM_FAILED      = 0xff  // communication error
+	TF_STATE_INITIAL             = 0x00, // initial state
+	TF_STATE_UNCHANGED           = 0x01, // no change
+	TF_STATE_SWIPE_0             = 0x02, // first swipe
+	TF_STATE_SWIPE_1             = 0x03, // second swipe
+	TF_STATE_SWIPE_2             = 0x04, // third swipe
+	TF_STATE_SWIPE_SUCCESS       = 0x05, // successful swipe
+	TF_STATE_SWIPE_FAILED        = 0x06, // bad swipe
+	TF_STATE_ENROLL_SUCCESS      = 0x07, // enroll failed
+	TF_STATE_ACQUIRE_SUCCESS     = 0x08, // acquirement successful
+	TF_STATE_ACQUIRE_FAILED      = 0x09, // acquirement failed
+	TF_STATE_VERIFY_SUCCESS      = 0x0a, // verification successful
+	TF_STATE_VERIFY_FAILED       = 0x0b, // verification failed
+	TF_STATE_COMM_FAILED         = 0xff  // communication error
 } libthinkfinger_state;
 
 typedef enum {
-	TF_RESULT_ACQUIRE_SUCCESS = TF_STATE_ACQUIRE_SUCCESS, // acquirement successful
-	TF_RESULT_ACQUIRE_FAILED  = TF_STATE_ACQUIRE_FAILED,  // acquirement failed
-	TF_RESULT_VERIFY_SUCCESS  = TF_STATE_VERIFY_SUCCESS,  // verification successful
-	TF_RESULT_VERIFY_FAILED   = TF_STATE_VERIFY_FAILED,   // verification failed
-	TF_RESULT_COMM_FAILED     = TF_STATE_COMM_FAILED      // communication error
+	TF_RESULT_ACQUIRE_SUCCESS    = TF_STATE_ACQUIRE_SUCCESS, // acquirement successful
+	TF_RESULT_ACQUIRE_FAILED     = TF_STATE_ACQUIRE_FAILED,  // acquirement failed
+	TF_RESULT_VERIFY_SUCCESS     = TF_STATE_VERIFY_SUCCESS,  // verification successful
+	TF_RESULT_VERIFY_FAILED      = TF_STATE_VERIFY_FAILED,   // verification failed
+	TF_RESULT_COMM_FAILED        = TF_STATE_COMM_FAILED      // communication error
 } libthinkfinger_result;
 
 /** @brief callback function which the driver invokes to report a new state of
@@ -132,11 +143,13 @@ int libthinkfinger_verify(libthinkfinger *tf);
 
 /** @brief create a struct libthinkfinger
  *
- * create a struct libthinkfinger and return a pointer to struct libthinkfinger on success
+ * create a struct libthinkfinger and return a pointer to struct libthinkfinger on success.
  *
- * @return pointer to sturct libthinkfinger on success, else NULL
+ * @param reference to libthinkfinger_init_status
+ *
+ * @return pointer to struct libthinkfinger on success, else NULL
  */
-libthinkfinger *libthinkfinger_new(void);
+libthinkfinger *libthinkfinger_new(libthinkfinger_init_status* init_status);
 
 /** @brief free an instance of libthinkfinger
  *
