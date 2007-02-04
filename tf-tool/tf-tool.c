@@ -171,17 +171,51 @@ user_exists (const char* login)
 	return ret_val;
 }
 
+static void
+raise_error (libthinkfinger_init_status init_status) {
+	const char *msg;
+
+	switch (init_status) {
+	case TF_INIT_NO_MEMORY:
+		msg = "Not enough memory.";
+		break;
+	case TF_INIT_USB_DEVICE_NOT_FOUND:
+		msg = "USB device not found.";
+		break;
+	case TF_INIT_USB_OPEN_FAILED:
+		msg = "Could not open USB device.";
+		break;
+	case TF_INIT_USB_CLAIM_FAILED:
+		msg = "Could not claim USB device.";
+		break;
+	case TF_INIT_USB_HELLO_FAILED:
+		msg = "Sending HELLO failed.";
+		break;
+	case TF_INIT_UNDEFINED:
+		msg = "Undefined error.";
+		break;
+	default:
+		msg = "Unknown error.";
+	}	
+
+	printf ("%s\n", msg);
+
+	return;
+}
+
 static int
 acquire (const s_tfdata *tfdata)
 {
 	libthinkfinger *tf;
+	libthinkfinger_init_status init_status;
 	int tf_state;
 	int ret_val = 0;
 
 	printf ("Initializing...");
 	fflush (stdout);
-	tf = libthinkfinger_new ();
-	if (tf == NULL) {
+	tf = libthinkfinger_new (&init_status);
+	if (init_status != TF_INIT_SUCCESS) {
+		raise_error (init_status);
 		ret_val = -1;
 		goto out;
 	}
@@ -216,13 +250,16 @@ static int
 verify (const s_tfdata *tfdata)
 {
 	libthinkfinger *tf;
+	libthinkfinger_init_status init_status;
 	int tf_state;
 	int ret_val = 0;
 
 	printf ("Initializing...");
 	fflush (stdout);
-	tf = libthinkfinger_new ();
-	if (tf == NULL) {
+
+	tf = libthinkfinger_new (&init_status);
+	if (init_status != TF_INIT_SUCCESS) {
+		raise_error (init_status);
 		ret_val = -1;
 		goto out;
 	}
@@ -237,7 +274,6 @@ verify (const s_tfdata *tfdata)
 			ret_val = 0;
 			break;
 		case TF_STATE_VERIFY_FAILED:
-			printf ("TF_STATE_VERIFY_FAILED\n");
 			ret_val = -1;
 			break;
 		case TF_RESULT_COMM_FAILED:
@@ -245,7 +281,6 @@ verify (const s_tfdata *tfdata)
 			ret_val = -1;
 			break;
 		default:
-			printf ("dwfaultTF_STATE_VERIFY_FAILED\n");
 			ret_val = -1;
 			break;
 	}
