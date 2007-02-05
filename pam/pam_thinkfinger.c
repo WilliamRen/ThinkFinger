@@ -180,7 +180,6 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 	struct pam_thinkfinger_s pam_thinkfinger;
 	struct termios term_attr;
 	libthinkfinger_init_status init_status;
-	int tty = 0;
 	
 	pam_thinkfinger.isatty = isatty (STDIN_FILENO);
 	if (pam_thinkfinger.isatty == 1)
