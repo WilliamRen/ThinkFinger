@@ -1,3 +1,89 @@
+2007-02-05 11:58  Timo Hoenig <thoenig@suse.de>
+
+	* [r71] NEWS: Release: ThinkFinger 0.2.2
+
+2007-02-05 11:29  Timo Hoenig <thoenig@suse.de>
+
+	* [r70] docs/pam_thinkfinger.8, docs/tf-tool.1: Fix tags for
+	  reference to project web site.
+
+2007-02-05 11:23  Timo Hoenig <thoenig@suse.de>
+
+	* [r69] pam/Makefile.am: Add pam_thinkfinger-compat.h to
+	  pam_thinkfinger_so_SOURCES.
+
+2007-02-05 11:04  Timo Hoenig <thoenig@suse.de>
+
+	* [r68] pam/pam_thinkfinger-compat.c, pam/pam_thinkfinger-compat.h:
+	  Re-implement pam_syslog support for PAM < 0.99.1.0. Patch by Luca
+	  Capello <luca@pca.it> and Stephan Berberig <s.berberig@arcor.de>.
+
+2007-02-05 10:22  Timo Hoenig <thoenig@suse.de>
+
+	* [r67] pam/pam_thinkfinger.c: Make return values of
+	  pam_sm_authenticate more meaningful.
+
+2007-02-05 09:52  Timo Hoenig <thoenig@suse.de>
+
+	* [r66] pam/pam_thinkfinger.c: Remove unused variable.
+
+2007-02-04 15:28  Timo Hoenig <thoenig@suse.de>
+
+	* [r65] pam/pam_thinkfinger.c: Add support for pam_syslog, new
+	  error handling, always kill pam_prompt thread on exit of
+	  thinkfinger thread.
+
+2007-02-04 15:03  Timo Hoenig <thoenig@suse.de>
+
+	* [r64] docs/Makefile.am: Add man pages to EXTRA_DIST.
+
+2007-02-04 14:41  Timo Hoenig <thoenig@suse.de>
+
+	* [r63] tf-tool/tf-tool.c: Add support for new error handling,
+	  remove bogus debug strings.
+
+2007-02-04 14:40  Timo Hoenig <thoenig@suse.de>
+
+	* [r62] libthinkfinger/libthinkfinger.c,
+	  libthinkfinger/libthinkfinger.h: Add support for pam_syslog,
+	  enhance error handling, fix typos.
+
+2007-02-04 14:23  Timo Hoenig <thoenig@suse.de>
+
+	* [r61] configure.in: Check for syslog.h.
+
+2007-02-04 13:27  Timo Hoenig <thoenig@suse.de>
+
+	* [r60] configure.in, docs/Makefile.am, docs/pam_thinkfinger.8,
+	  docs/tf-tool.1: Add man pages for tf-tool and pam_thinkfinger.
+	  Based on patch by Luca Capello <luca@pca.it>.
+
+2007-02-02 11:12  Timo Hoenig <thoenig@suse.de>
+
+	* [r59] pam/Makefile.am: Fix permissions for pam_thinkfinger.so.
+	  Patch by Luca Capello <luca@pca.it>.
+
+2007-02-02 11:09  Timo Hoenig <thoenig@suse.de>
+
+	* [r58] configure.in: Bump version number: 0.2.2
+
+2007-02-01 11:12  Timo Hoenig <thoenig@suse.de>
+
+	* [r57] pam/pam_thinkfinger-compat.c, pam/pam_thinkfinger.c:
+	  Whitespace fixes.
+
+2007-02-01 11:08  Timo Hoenig <thoenig@suse.de>
+
+	* [r56] INSTALL, README, configure.in, pam/Makefile.am,
+	  pam/pam_thinkfinger-compat.c, pam/pam_thinkfinger-compat.h,
+	  pam/pam_thinkfinger.c: Add compatibility for PAM < 0.99.1.0.
+	  Patch by Stephan Berberig <s.berberig@arcor.de> and Luca Capello
+	  <luca@pca.it>, backport based on Linux-PAM_0.99.1.0.
+
+2007-01-29 21:13  Timo Hoenig <thoenig@suse.de>
+
+	* [r55] ChangeLog: Update ChangeLog.
+
 2007-01-29 20:29  Timo Hoenig <thoenig@suse.de>
 
 	* [r54] NEWS: Release: ThinkFinger 0.2.1
