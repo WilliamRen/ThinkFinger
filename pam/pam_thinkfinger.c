@@ -187,12 +187,15 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 
 	pam_thinkfinger.retval = PAM_SERVICE_ERR;
 	pam_get_user (pamh, &pam_thinkfinger.user, NULL);
-	if (pam_thinkfinger_check_user (pam_thinkfinger.user))
+	if (pam_thinkfinger_check_user (pam_thinkfinger.user) < 0) {
+		pam_thinkfinger.retval = PAM_USER_UNKNOWN;
 		goto out;
+	}
 
 	pam_thinkfinger.tf = libthinkfinger_new (&init_status);
 	if (init_status != TF_INIT_SUCCESS) {
 		handle_error (pamh, init_status);
+		pam_thinkfinger.retval = PAM_IGNORE;
 		goto out;
 	}
 
