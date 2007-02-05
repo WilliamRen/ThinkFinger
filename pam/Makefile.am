@@ -6,7 +6,7 @@ pamdir = $(SECUREDIR)
 INCLUDES = -I$(top_srcdir)/libthinkfinger
 
 if HAVE_OLD_PAM
-pam_thinkfinger_so_SOURCES = pam_thinkfinger-compat.c pam_thinkfinger.c
+pam_thinkfinger_so_SOURCES = pam_thinkfinger-compat.c pam_thinkfinger-compat.h pam_thinkfinger.c
 else
 pam_thinkfinger_so_SOURCES = pam_thinkfinger.c
 endif
