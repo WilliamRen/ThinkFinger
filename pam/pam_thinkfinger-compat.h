@@ -31,90 +31,6 @@
 #define PAM_THINKFINGER_COMPAT_H
 
 /*
- * libpam/pam_private.h
- */
-
-/* Values for select arg to _pam_dispatch() */
-#define PAM_NOT_STACKED   0
-#define PAM_AUTHENTICATE  1
-#define PAM_SETCRED       2
-#define PAM_ACCOUNT       3
-#define PAM_OPEN_SESSION  4
-#define PAM_CLOSE_SESSION 5
-#define PAM_CHAUTHTOK     6
-
-#define _PAM_SYSTEM_LOG_PREFIX "PAM"
-
-struct handlers {
-	struct handler *authenticate;
-	struct handler *setcred;
-	struct handler *acct_mgmt;
-	struct handler *open_session;
-	struct handler *close_session;
-	struct handler *chauthtok;
-};
-
-struct service {
-	struct loaded_module *module;	/* Only used for dynamic loading */
-	int modules_allocated;
-	int modules_used;
-	int handlers_loaded;
-
-	struct handlers conf;		/* the configured handlers */
-	struct handlers other;		/* the default handlers */
-};
-
-#include <sys/time.h>
-
-typedef enum { PAM_FALSE, PAM_TRUE } _pam_boolean;
-
-struct _pam_fail_delay {
-	_pam_boolean set;
-	unsigned int delay;
-	time_t begin;
-	const void *delay_fn_ptr;
-};
-
-struct _pam_former_state {
-	/* this is known and set by _pam_dispatch() */
-	int choice;	/* which flavor of module function did we call? */
-
-	/* state info for the _pam_dispatch_aux() function */
-	int depth;	/* how deep in the stack were we? */
-	int impression;	/* the impression at that time */
-	int status;	/* the status before returning incomplete */
-
-	/* state info used by pam_get_user() function */
-	int fail_user;
-	int want_user;
-	char *prompt;	/* saved prompt information */
-
-	/* state info for the pam_chauthtok() function */
-	_pam_boolean update;
-};
-
-struct pam_handle {
-	char *authtok;
-	unsigned caller_is;
-	struct pam_conv *pam_conversation;
-	char *oldauthtok;
-	char *prompt;				/* for use by pam_get_user() */
-	char *service_name;
-	char *user;
-	char *rhost;
-	char *ruser;
-	char *tty;
-	struct pam_data *data;
-	struct pam_environ *env;		/* structure to maintain environment list */
-	struct _pam_fail_delay fail_delay;	/* helper function for easy delays */
-	struct service handlers;
-	struct _pam_former_state former;	/* library state - support for event driven applications */
-	const char *mod_name;			/* Name of the module currently executed */
-	int choice;				/* Which function we call from the module */
-};
-
-
-/*
  * libpam/include/security/_pam_types.h
  */
 
@@ -144,9 +60,6 @@ struct pam_handle {
  */
 
 #include <stdarg.h>
-
-extern void PAM_FORMAT ((printf, 3, 0)) PAM_NONNULL ((3))
-pam_vsyslog (const pam_handle_t *pamh, int priority, const char *fmt, va_list args);
 
 extern void PAM_FORMAT ((printf, 3, 4)) PAM_NONNULL ((3))
 pam_syslog (const pam_handle_t *pamh, int priority, const char *fmt, ...);

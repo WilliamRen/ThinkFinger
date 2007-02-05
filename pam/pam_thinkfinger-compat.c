@@ -41,70 +41,46 @@
 
 #include "pam_thinkfinger-compat.h"
 
-/*
- * libpam/pam_syslog.c
- */
+typedef const void *pam_item_t;
 
-static const char *_pam_choice2str (int choice)
+/* syslogging function for errors and other information */
+void pam_syslog(const pam_handle_t *pamh, int priority, const char *fmt, ...)
 {
-	switch (choice) {
-	case PAM_AUTHENTICATE:
-		return "auth";
-	case PAM_SETCRED:
-		return "setcred";
-	case PAM_ACCOUNT:
-		return "account";
-	case PAM_OPEN_SESSION:
-	case PAM_CLOSE_SESSION:
-		return "session";
-	case PAM_CHAUTHTOK:
-		return "chauthtok";
-	}
-	return "";
-}
-
-void pam_vsyslog (const pam_handle_t *pamh, int priority, const char *fmt, va_list args)
-{
-	char *msgbuf1 = NULL, *msgbuf2 = NULL;
 	int save_errno = errno;
+	pam_item_t item;
+	const char *service;
+	va_list args;
+	char *msgbuf;
 
-	if (pamh && pamh->mod_name) {
-		if (asprintf (&msgbuf1, "%s(%s:%s):", pamh->mod_name,
-			      pamh->service_name?pamh->service_name:"<unknown>",
-			      _pam_choice2str (pamh->choice)) < 0) {
-			syslog (LOG_AUTHPRIV|LOG_ERR, "asprintf: %m");
-			return;
-		}
-	}
+	if (pam_get_item(pamh, PAM_SERVICE, &item) != PAM_SUCCESS || !item)
+		service = "<unknown>";
+	else
+		service = item;
 
+	openlog (service, LOG_CONS | LOG_PID, LOG_AUTHPRIV);
+
+	va_start (args, fmt);
 	errno = save_errno;
-	if (vasprintf (&msgbuf2, fmt, args) < 0) {
-		syslog (LOG_AUTHPRIV|LOG_ERR, "vasprintf: %m");
-		_pam_drop (msgbuf1);
+	if (vasprintf (&msgbuf, fmt, args) < 0)
+		msgbuf = NULL;
+	va_end (args);
+
+	if (!msgbuf) {
+		syslog (LOG_AUTHPRIV|LOG_CRIT, "%s: vasprintf: %m",
+			"pam_thinkfinger");
+		closelog ();
 		return;
 	}
 
-	errno = save_errno;
-	syslog (LOG_AUTHPRIV|priority, "%s %s",
-		(msgbuf1 ? msgbuf1 : _PAM_SYSTEM_LOG_PREFIX), msgbuf2);
+	syslog (LOG_AUTHPRIV|priority, "%s(%s): %s",
+		"pam_thinkfinger", service, msgbuf);
 
-	_pam_drop (msgbuf1);
-	_pam_drop (msgbuf2);
+	closelog ();
 }
-
 
 /*
  * libpam/pam_vprompt.c
  */
-
-void pam_syslog (const pam_handle_t *pamh, int priority, const char *fmt, ...)
-{
-	va_list args;
-
-	va_start (args, fmt);
-	pam_vsyslog (pamh, priority, fmt, args);
-	va_end (args);
-}
 
 int pam_vprompt (pam_handle_t *pamh, int style, char **response, const char *fmt, va_list args)
 {
