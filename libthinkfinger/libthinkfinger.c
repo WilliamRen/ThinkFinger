@@ -464,7 +464,7 @@ libthinkfinger_verify (libthinkfinger *tf)
 		goto out;
 	}
 
-	filesize = read (tf->fd, ctrlbuf+header, 10240);
+	filesize = read (tf->fd, ctrlbuf+header, sizeof(ctrlbuf)-header);
 	filesize -= 2; // HACK!
 	*((short *) (ctrlbuf+8)) = filesize + 28;
 	ctrlbuf[5] = (filesize+20511) >> 8;
