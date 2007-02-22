@@ -61,7 +61,7 @@ AC_ARG_ENABLE(securedir, AC_HELP_STRING([--with-securedir=dir],[Where to put PAM
 AC_ARG_ENABLE(birdir, AC_HELP_STRING([--with-birdir=dir],[Where to put the biometric identification records (bir files) @<:@default=$sysconfdir/pam_thinkfinger@:>@]))
 
 # Check for libusb using pkg-config
-PKG_CHECK_MODULES(USB, libusb >= 0.1.12, usb_found=yes, AC_MSG_ERROR([libusb missing]))
+PKG_CHECK_MODULES(USB, libusb >= 0.1.11, usb_found=yes, AC_MSG_ERROR([libusb missing]))
 
 # Check for Doxygen
 AC_CHECK_PROG(DOXYGEN, [doxygen], [doxygen], [])
