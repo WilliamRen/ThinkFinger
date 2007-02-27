@@ -51,7 +51,6 @@ if test "x$enable_pam" != "xno"; then
 	AC_CHECK_LIB(pam, pam_prompt, , HAVE_OLD_PAM=yes
 				AC_DEFINE(HAVE_OLD_PAM,1,
 				[Defined if pam_prompt function does not exist in libpam]))
-	AM_CONDITIONAL(HAVE_OLD_PAM, test "x$HAVE_OLD_PAM" = "xyes")
 
 	# Check for Linux input and uinput headers
 	AC_CHECK_HEADER(linux/input.h, HAVE_LINUX_INPUT=1,,)
@@ -165,6 +164,7 @@ AC_SUBST([PTHREAD_LIBS])
 
 # AM_CONDITIONAL
 AM_CONDITIONAL(BUILD_PAM, test "x$enable_pam" = "xyes")
+AM_CONDITIONAL(HAVE_OLD_PAM, test "x$HAVE_OLD_PAM" = "xyes")
 
 # AC_CONFIG_FILES
 AC_CONFIG_FILES([Makefile
