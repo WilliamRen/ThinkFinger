@@ -1,13 +1,15 @@
 .\" -*- nroff -*-
 .\" Copyright (C) 2007 Luca Capello <luca@pca.it>
+.\"               2007 Jose Plans <jplans@redhat.com>
+.\"               2007 Timo Hoenig <thoenig@suse.de>
 .\"
-.TH PAM_THINKFINGER 8 "Feb 1, 2007"
+.TH PAM_THINKFINGER 8 "Feb 27, 2007"
 
-.SH NAME
+.SH "NAME"
 pam_thinkfinger - PAM module for fingerprint authentication through
 libthinkfinger
 
-.SH DESCRIPTION
+.SH "DESCRIPTION"
 ThinkFinger is a driver for the UPEK/SGS Thomson Microelectronics
 fingerprint reader (USB ID 0483:2016).  The device is being found
 either as a standalone USB device, built into USB keyboards or built
@@ -18,7 +20,13 @@ is the PAM module responsible for fingerprint authentication through
 libthinkfinger.  The module does only trigger for users which have
 deposited their fingerprint in the \fI/etc/pam_thinkfinger\fP folder.
 
-.SH FILES
+.SH "OPTIONS"
+.PD 0
+.TP
+debug
+Turns on debugging via \fBsyslog\fR(3)
+
+.SH "FILES"
 .PD 0
 .TP
 .I /etc/pam_thinkfinger
@@ -27,20 +35,36 @@ The default folder where the fingerprint for login users are stored
 .I /lib/security
 The default folder for PAM modules
 
-.SH BUGS
+.SH "EXAMPLES"
+.PP
+Add the following line to \fI/etc/pam.d/common-auth\fR:
+.sp
+.nf
+sufficient auth pam_thinkfinger.so
+.fi
+.sp
+To enable debugging support via \fBsyslog\fR(3), add the following line to \fI/etc/pam.d/common-auth\fR:
+.sp
+.nf
+sufficient auth pam_thinkfinger.so debug
+.fi
+.sp
+
+.SH "BUGS"
 Please report bugs to <thinkfinger-devel@lists.sourceforge.net>.
 
-.SH SEE ALSO
+.SH "SEE ALSO"
 .BR tf-tool (1),
 .BR pam (8)
 
 .BR \fIhttp://thinkfinger.sourceforge.net/\fP
 
-.SH AUTHORS
+.SH "AUTHORS"
 ThinkFinger was written by Timo Hoenig <thoenig@suse.de> and Pavel
 Machek <pavel@suse.cz> and is licensed under the terms of the GNU
 General Public License (GPL).
 
-This manual page was written by Luca Capello <luca@pca.it>.
+This manual page was written by Luca Capello <luca@pca.it>. Additions
+by Jose Plans.
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU General Public License (GPL).
