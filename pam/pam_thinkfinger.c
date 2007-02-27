@@ -202,7 +202,7 @@ PAM_EXTERN
 int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
 	int ret;
-	int retval = PAM_SERVICE_ERR;
+	int retval = PAM_AUTH_ERR;
 	struct pam_thinkfinger_s pam_thinkfinger;
 	struct termios term_attr;
 	libthinkfinger_init_status init_status;
@@ -216,22 +216,22 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 
 	pam_get_user (pamh, &pam_thinkfinger.user, NULL);
 	if (pam_thinkfinger_check_user (pam_thinkfinger.user) < 0) {
-		retval = PAM_USER_UNKNOWN;
 		pam_thinkfinger_log (LOG_ERR, "User '%s' is unknown.", pam_thinkfinger.user);
+		retval = PAM_USER_UNKNOWN;
 		goto out;
 	}
 
 	ret = uinput_open (&pam_thinkfinger.uinput_fd);
 	if (ret != 0) {
 		pam_thinkfinger_log (LOG_ERR, "Initializing uinput failed: %s.", strerror (ret));
-		retval = PAM_IGNORE;
+		retval = PAM_AUTHINFO_UNAVAIL;
 		goto out;
 	}
 
 	pam_thinkfinger.tf = libthinkfinger_new (&init_status);
 	if (init_status != TF_INIT_SUCCESS) {
 		pam_thinkfinger_log (LOG_ERR, "Error: %s", handle_error (init_status));
-		retval = PAM_IGNORE;
+		retval = PAM_AUTHINFO_UNAVAIL;
 		goto out;
 	}
 
@@ -252,7 +252,7 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 	if (pam_thinkfinger.swipe_retval == PAM_SUCCESS)
 		retval = PAM_SUCCESS;
 	else
-		retval = PAM_SERVICE_ERR;
+		retval = PAM_AUTHINFO_UNAVAIL;
 out:
 	pam_thinkfinger_log (LOG_INFO, "%s returning '%d': %s.", __FUNCTION__,
 			     retval, retval ? pam_strerror (pamh, retval) : "success");
