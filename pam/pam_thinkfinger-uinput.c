@@ -31,8 +31,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#define UINPUT_DEVICE "/dev/input/uinput"
-
 int uinput_cr (int *fd)
 {
 	int retval = 0, ev_size = 0;
@@ -82,8 +80,12 @@ int uinput_open (int *fd)
 		.name = "Virtual ThinkFinger Keyboard"
 	};
 
-	*fd = open (UINPUT_DEVICE, O_WRONLY | O_NDELAY);
-	if (*fd < 0) {
+        *fd = open ("/dev/input/uinput", O_WRONLY | O_NDELAY);
+        if (*fd < 0)
+                *fd = open ("/dev/misc/uinput", O_WRONLY | O_NDELAY);
+        if (*fd < 0)
+                *fd = open ("/dev/uinput", O_WRONLY | O_NDELAY);
+        if (*fd < 0) {
 		retval = errno;
 		goto out;
 	}
