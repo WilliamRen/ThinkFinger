@@ -24,7 +24,7 @@
 
 # Initialize auto{conf,make}
 AC_PREREQ(2.59)
-AC_INIT(ThinkFinger, 0.2.2, http://thinkfinger.sourceforge.net/, thinkfinger)
+AC_INIT([ThinkFinger],[0.2.3],[http://thinkfinger.sourceforge.net/],[thinkfinger])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([libthinkfinger/libthinkfinger.c])
@@ -47,11 +47,23 @@ if test "x$enable_pam" != "xno"; then
 	AC_CHECK_HEADERS(security/pam_appl.h security/pam_modules.h,, AC_MSG_ERROR(PAM header files not found))
 	AC_CHECK_LIB(pam, pam_start, [PAM_LIBS="-lpam"], AC_MSG_ERROR([libpam missing]))
 	AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS="-lpthread"], AC_MSG_ERROR([libpthread missing]))
-	AC_DEFINE(BUILD_PAM,1,[Define to 1 if you want to build with PAM support.])
+	AC_DEFINE(BUILD_PAM, 1, [Define to 1 if you want to build with PAM support.])
 	AC_CHECK_LIB(pam, pam_prompt, , HAVE_OLD_PAM=yes
 				AC_DEFINE(HAVE_OLD_PAM,1,
 				[Defined if pam_prompt function does not exist in libpam]))
 	AM_CONDITIONAL(HAVE_OLD_PAM, test "x$HAVE_OLD_PAM" = "xyes")
+
+	# Check for Linux input and uinput headers
+	AC_CHECK_HEADER(linux/input.h, HAVE_LINUX_INPUT=1,,)
+	if test "$HAVE_LINUX_INPUT" = "1"; then
+		AC_CHECK_HEADER(linux/uinput.h, HAVE_LINUX_UINPUT=1,, [#include <linux/input.h>])
+	else
+		AC_MSG_ERROR("Required header file not found.")
+	fi
+
+	if test "$HAVE_LINUX_UINPUT" != "1"; then
+		AC_MSG_ERROR("Required header file not found.")
+	fi
 fi
 
 # AC_ARG_ENABLE SECUREDIR
