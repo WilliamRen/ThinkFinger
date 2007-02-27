@@ -32,6 +32,7 @@
 #include <string.h>
 #include <usb.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,7 +80,9 @@ typedef enum {
 	TF_STATE_ACQUIRE_FAILED      = 0x09, // acquirement failed
 	TF_STATE_VERIFY_SUCCESS      = 0x0a, // verification successful
 	TF_STATE_VERIFY_FAILED       = 0x0b, // verification failed
-	TF_STATE_COMM_FAILED         = 0xff  // communication error
+	TF_STATE_USB_ERROR           = 0xfd, // USB error
+	TF_STATE_COMM_FAILED         = 0xfe, // communication error
+	TF_STATE_UNDEFINED           = 0xff  // undefined
 } libthinkfinger_state;
 
 typedef enum {
@@ -87,7 +90,9 @@ typedef enum {
 	TF_RESULT_ACQUIRE_FAILED     = TF_STATE_ACQUIRE_FAILED,  // acquirement failed
 	TF_RESULT_VERIFY_SUCCESS     = TF_STATE_VERIFY_SUCCESS,  // verification successful
 	TF_RESULT_VERIFY_FAILED      = TF_STATE_VERIFY_FAILED,   // verification failed
-	TF_RESULT_COMM_FAILED        = TF_STATE_COMM_FAILED      // communication error
+	TF_RESULT_USB_ERROR          = TF_STATE_USB_ERROR,       // USB error
+	TF_RESULT_COMM_FAILED        = TF_STATE_COMM_FAILED,     // communication error
+	TF_RESULT_UNDEFINED          = TF_STATE_UNDEFINED        // undefined
 } libthinkfinger_result;
 
 /** @brief callback function which the driver invokes to report a new state of
@@ -126,9 +131,9 @@ int libthinkfinger_set_callback(libthinkfinger *tf, libthinkfinger_state_cb stat
  *
  * @param tf struct libthinkfinger
  *
- * @return 0 on success, else -1
+ * @return libthinkfinger_result
  */
-int libthinkfinger_acquire(libthinkfinger *tf);
+libthinkfinger_result libthinkfinger_acquire(libthinkfinger *tf);
 
 /** @brief verify fingerprint
  *
@@ -136,9 +141,9 @@ int libthinkfinger_acquire(libthinkfinger *tf);
  *
  * @param tf struct libthinkfinger
  *
- * @return 0 on success, else -1
+ * @return libthinkfinger_result
  */
-int libthinkfinger_verify(libthinkfinger *tf);
+libthinkfinger_result libthinkfinger_verify(libthinkfinger *tf);
 
 
 /** @brief create a struct libthinkfinger
