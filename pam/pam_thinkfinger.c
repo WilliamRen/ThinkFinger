@@ -24,6 +24,7 @@
 #include <config.h>
 
 #include <libthinkfinger.h>
+#include <pam_thinkfinger-uinput.h>
 
 #include <stdio.h>
 #include <termios.h>
@@ -38,7 +39,6 @@
 #endif
 
 #define MAX_PATH    256
-#define SWIPE_RETRY 3
 
 #define PAM_SM_AUTH
 
@@ -47,9 +47,10 @@ struct pam_thinkfinger_s {
 	const char *user;
 	pthread_t t_pam_prompt;
 	pthread_t t_thinkfinger;
-	pthread_mutex_t retval_mutex;
-	int retval;
+	int swipe_retval;
+	int prompt_retval;
 	int isatty;
+	int uinput_fd;
 	pam_handle_t *pamh;
 };
 
@@ -92,38 +93,30 @@ static void thinkfinger_thread (void *data)
 {
 	struct pam_thinkfinger_s *pam_thinkfinger = data;
 	libthinkfinger_state tf_state;
-	int retry = 0;
-	_Bool pending = true;
 
-	while (++retry <= SWIPE_RETRY && pending) {
-		tf_state = pam_thinkfinger_verify (pam_thinkfinger);
-		if (tf_state == TF_RESULT_VERIFY_SUCCESS) {
-			pthread_mutex_lock (&pam_thinkfinger->retval_mutex);
-			pam_thinkfinger->retval = PAM_SUCCESS;
-			pthread_mutex_unlock (&pam_thinkfinger->retval_mutex);
-			pam_syslog (pam_thinkfinger->pamh, LOG_NOTICE,
-				    "%s authenticated (biometric identification record matched)",
-				    pam_thinkfinger->user);
-			pending = false;
-		} else if (tf_state == TF_RESULT_VERIFY_FAILED) {
-			pam_syslog (pam_thinkfinger->pamh, LOG_NOTICE,
-				    "%s verification failed (attempt %i/%i)",
-				    pam_thinkfinger->user, retry, SWIPE_RETRY);
-		} else {
-			pthread_mutex_lock (&pam_thinkfinger->retval_mutex);
-			pam_thinkfinger->retval = PAM_AUTH_ERR;
-			pthread_mutex_unlock (&pam_thinkfinger->retval_mutex);
-			pam_syslog (pam_thinkfinger->pamh, LOG_NOTICE,
-				    "%s verication failed (pam_thinkfinger error 0x%x)",
-				    pam_thinkfinger->user, tf_state);
-			pending = false;
-		}
-
+	pam_thinkfinger->swipe_retval = PAM_SERVICE_ERR;
+	tf_state = pam_thinkfinger_verify (pam_thinkfinger);
+	if (tf_state == TF_RESULT_VERIFY_SUCCESS) {
+		pam_thinkfinger->swipe_retval = PAM_SUCCESS;
+		pam_syslog (pam_thinkfinger->pamh, LOG_NOTICE,
+			    "%s authenticated (biometric identification record matched)",
+			    pam_thinkfinger->user);
+	} else if (tf_state == TF_RESULT_VERIFY_FAILED) {
+		pam_thinkfinger->swipe_retval = PAM_AUTH_ERR;
+		pam_syslog (pam_thinkfinger->pamh, LOG_NOTICE,
+			    "%s verication failed (biometric identification record not matched)",
+			    pam_thinkfinger->user);
+	} else {
+		pam_thinkfinger->swipe_retval = PAM_AUTH_ERR;
+		pam_syslog (pam_thinkfinger->pamh, LOG_NOTICE,
+			    "%s verication failed (0x%x)",
+			    pam_thinkfinger->user, tf_state);
+		goto out;
 	}
 
-	if (pam_thinkfinger->isatty)
-		fprintf(stdout, "\n");
-	pthread_cancel (pam_thinkfinger->t_pam_prompt);
+	if (uinput_cr (&pam_thinkfinger->uinput_fd) < 0)
+		pam_syslog (pam_thinkfinger->pamh, LOG_ERR, "Could not send carriage return via uinput");
+out:
 	pthread_exit (NULL);
 }
 
@@ -134,15 +127,12 @@ static void pam_prompt_thread (void *data)
 
 	pam_prompt (pam_thinkfinger->pamh, PAM_PROMPT_ECHO_OFF, &resp, "Password or swipe finger: ");
 	pam_set_item (pam_thinkfinger->pamh, PAM_AUTHTOK, resp);
-	pthread_mutex_lock (&pam_thinkfinger->retval_mutex);
-	pam_thinkfinger->retval = PAM_SERVICE_ERR;
-	pthread_mutex_unlock (&pam_thinkfinger->retval_mutex);
 	pthread_cancel (pam_thinkfinger->t_thinkfinger);
 
 	pthread_exit (NULL);
 }
 
-static void handle_error (pam_handle_t *pamh, libthinkfinger_init_status init_status)
+static const char *handle_error (libthinkfinger_init_status init_status)
 {
 	const char *msg;
 
@@ -169,38 +159,41 @@ static void handle_error (pam_handle_t *pamh, libthinkfinger_init_status init_st
 		msg = "Unknown error.";
 	}	
 
-	pam_syslog (pamh, LOG_ERR, msg);
-
-	return;
+	return msg;
 }
 
 PAM_EXTERN
 int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **argv)
 {
+	int retval = PAM_SERVICE_ERR;
 	struct pam_thinkfinger_s pam_thinkfinger;
 	struct termios term_attr;
 	libthinkfinger_init_status init_status;
-	
+
 	pam_thinkfinger.isatty = isatty (STDIN_FILENO);
 	if (pam_thinkfinger.isatty == 1)
 		tcgetattr (STDIN_FILENO, &term_attr);
 
-	pam_thinkfinger.retval = PAM_SERVICE_ERR;
 	pam_get_user (pamh, &pam_thinkfinger.user, NULL);
 	if (pam_thinkfinger_check_user (pam_thinkfinger.user) < 0) {
-		pam_thinkfinger.retval = PAM_USER_UNKNOWN;
+		retval = PAM_USER_UNKNOWN;
+		goto out;
+	}
+
+	if (uinput_open (&pam_thinkfinger.uinput_fd) < 0) {
+		pam_syslog (pamh, LOG_ERR, "Initializing uinput failed.");
+		retval = PAM_IGNORE;
 		goto out;
 	}
 
 	pam_thinkfinger.tf = libthinkfinger_new (&init_status);
 	if (init_status != TF_INIT_SUCCESS) {
-		handle_error (pamh, init_status);
-		pam_thinkfinger.retval = PAM_IGNORE;
+		pam_syslog (pamh, LOG_ERR, "%s", handle_error (init_status));
+		retval = PAM_IGNORE;
 		goto out;
 	}
 
 	pam_thinkfinger.pamh = pamh;
-	pthread_mutex_init(&pam_thinkfinger.retval_mutex, NULL);
 	pthread_create (&pam_thinkfinger.t_thinkfinger, NULL, (void *) &thinkfinger_thread, &pam_thinkfinger);
 	pthread_create (&pam_thinkfinger.t_pam_prompt, NULL, (void *) &pam_prompt_thread, &pam_thinkfinger);
 	pthread_join (pam_thinkfinger.t_pam_prompt, NULL);
@@ -208,12 +201,18 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 
 	if (pam_thinkfinger.tf)
 		libthinkfinger_free (pam_thinkfinger.tf);
+	if (pam_thinkfinger.uinput_fd > 0)
+		uinput_close (&pam_thinkfinger.uinput_fd);
 	if (pam_thinkfinger.isatty == 1) {
 		tcsetattr (STDIN_FILENO, TCSADRAIN, &term_attr);
 	}
 
+	if (pam_thinkfinger.swipe_retval == PAM_SUCCESS)
+		retval = PAM_SUCCESS;
+	else
+		retval = PAM_SERVICE_ERR;
 out:
-	return pam_thinkfinger.retval;
+	return retval;
 }
 
 PAM_EXTERN
