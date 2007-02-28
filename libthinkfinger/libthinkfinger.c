@@ -76,6 +76,10 @@ static char init_e[20] = {
 	0x00, 0x00, 0x6d, 0x7e
 };
 
+static char init_f[6] = {
+        0x43, 0x69, 0x61, 0x6f, 0x00, 0x40
+};
+
 struct init_table {
 	char *data;
 	size_t len;
@@ -87,10 +91,11 @@ static struct init_table init[] = {
 	{ init_c, sizeof (init_c) },
 	{ init_d, sizeof (init_d) },
 	{ init_e, sizeof (init_e) },
+	{ init_f, sizeof (init_f) },
 	{ 0x0,    0x0 }
 };
 
-static char ctrlbuf [1024] = {
+static char ctrlbuf[1024] = {
 	0x43, 0x69, 0x61, 0x6f, 0x00, 0x51, 0x0b, 0x28,
 	0xb8, 0x00, 0x00, 0x00, 0x03, 0x02, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -98,26 +103,32 @@ static char ctrlbuf [1024] = {
 	0x00, 0x00, 0x03
 };
 
-static char enroll_init [23] = {
+static char enroll_init[23] = {
 	0x43, 0x69, 0x61, 0x6f, 0x00, 0x50, 0x0e, 0x28,
 	0x0b, 0x00, 0x00, 0x00, 0x02, 0x02, 0xc0, 0xd4,
 	0x01, 0x00, 0x04, 0x00, 0x08, 0x0f, 0x86
 };
 
-static char scan_sequence_one [17] = {
+static char scan_sequence_a[17] = {
 	0x43, 0x69, 0x61, 0x6f, 0x00, 0x60, 0x08, 0x28,
 	0x05, 0x00, 0x00, 0x00, 0x00, 0x30, 0x01, 0x49,
 	0x6b
 };
 
-static char scan_sequence_two [17] = {
+static char scan_sequence_b[17] = {
+        0x43, 0x69, 0x61, 0x6f, 0x00, 0x70, 0x08, 0x28,
+        0x05, 0x00, 0x00, 0x00, 0x00, 0x30, 0x01, 0xdf,
+        0xff
+};
+
+static char scan_sequence_c[17] = {
 	0x43, 0x69, 0x61, 0x6f, 0x00, 0x80, 0x08, 0x28,
 	0x05, 0x00, 0x00, 0x00, 0x00, 0x30, 0x01, 0x6a,
 	0xc4
 };
 
 struct libthinkfinger_s {
-	struct usb_dev_handle *usb_handle;
+	struct usb_dev_handle *usb_dev_handle;
 	const char *file;
 	int fd;
 	_Bool write_fingerprint;
@@ -201,18 +212,17 @@ static struct usb_device *_libthinkfinger_usb_device_find (void)
 }
 
 
-static void
-_libthinkfinger_usb_deinit (libthinkfinger *tf)
+static void _libthinkfinger_usb_deinit (libthinkfinger *tf)
 {
-	if (tf->usb_handle) {
-		usb_release_interface (tf->usb_handle, 0);
-		usb_close (tf->usb_handle);
+	if (tf->usb_dev_handle) {
+		usb_reset (tf->usb_dev_handle);
+		usb_release_interface (tf->usb_dev_handle, 0);
+		usb_close (tf->usb_dev_handle);
 	}
-	tf->usb_handle = NULL;
+	tf->usb_dev_handle = NULL;
 }
 
-static libthinkfinger_init_status
-_libthinkfinger_usb_init (libthinkfinger *tf)
+static libthinkfinger_init_status _libthinkfinger_usb_init (libthinkfinger *tf)
 {
 	libthinkfinger_init_status retval = TF_INIT_UNDEFINED;
 	struct usb_device *usb_dev;
@@ -225,18 +235,18 @@ _libthinkfinger_usb_init (libthinkfinger *tf)
 		goto out;
 	}
 
-	tf->usb_handle = usb_open (usb_dev);
-	if (tf->usb_handle == NULL) {
+	tf->usb_dev_handle = usb_open (usb_dev);
+	if (tf->usb_dev_handle == NULL) {
 		retval = TF_INIT_USB_OPEN_FAILED;
 		goto out;
 	}
 
-	if (usb_claim_interface (tf->usb_handle, 0) < 0) {
+	if (usb_claim_interface (tf->usb_dev_handle, 0) < 0) {
 		retval = TF_INIT_USB_CLAIM_FAILED;
 		goto out;
 	}
 
-	if (_libthinkfinger_usb_hello (tf->usb_handle) < 0) {
+	if (_libthinkfinger_usb_hello (tf->usb_dev_handle) < 0) {
 		retval = TF_INIT_USB_HELLO_FAILED;
 		goto out;
 	}
@@ -247,8 +257,7 @@ out:
 	return retval;
 }
 
-static void
-_libthinkfinger_parse_scan_reply (libthinkfinger *tf, unsigned char *inbuf)
+static void _libthinkfinger_parse_scan_reply (libthinkfinger *tf, unsigned char *inbuf)
 {
 	if (tf == NULL) {
 		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
@@ -295,8 +304,7 @@ out:
 	return;
 }
 
-static int
-_libthinkfinger_store_fingerprint (libthinkfinger *tf, unsigned char *data)
+static int _libthinkfinger_store_fingerprint (libthinkfinger *tf, unsigned char *data)
 {
 	int retval = -1;
 
@@ -317,8 +325,7 @@ out:
 }
 
 /* returns 1 if it understood the packet */
-static int
-_libthinkfinger_parse (libthinkfinger *tf, unsigned char *inbuf)
+static int _libthinkfinger_parse (libthinkfinger *tf, unsigned char *inbuf)
 {
 	int retval = -1;
 
@@ -380,8 +387,7 @@ out:
 #define SILENT 1
 #define PARSE 2
 
-static void
-_libthinkfinger_ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, int len)
+static void _libthinkfinger_ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, int len)
 {
 	int usb_retval;
 	unsigned char inbuf[10240];
@@ -395,7 +401,7 @@ _libthinkfinger_ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, 
 		goto out;
 	}
 
-	usb_retval = usb_bulk_read (tf->usb_handle, 0x01, (char *) inbuf, 0x40, USB_TIMEOUT);
+	usb_retval = usb_bulk_read (tf->usb_dev_handle, 0x01, (char *) inbuf, 0x40, USB_TIMEOUT);
 	if (usb_retval < 0 && usb_retval != -ETIMEDOUT) {
 		tf->state = TF_STATE_USB_ERROR;
 		goto out_result;
@@ -419,7 +425,7 @@ _libthinkfinger_ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, 
 
 	*((short *) (ctrldata+len-2)) = udf_crc ((u8*)&(ctrldata[4]), len-6, 0);
 
-	usb_retval = usb_bulk_write (tf->usb_handle, 0x02, (char *) ctrldata, len, USB_TIMEOUT);
+	usb_retval = usb_bulk_write (tf->usb_dev_handle, 0x02, (char *) ctrldata, len, USB_TIMEOUT);
 	if (usb_retval < 0 && usb_retval != -ETIMEDOUT) {
 		tf->state = TF_STATE_USB_ERROR;
 		goto out_result;
@@ -444,8 +450,7 @@ out:
 	return;
 }
 
-static libthinkfinger_init_status
-_libthinkfinger_init (libthinkfinger *tf)
+static libthinkfinger_init_status _libthinkfinger_init (libthinkfinger *tf)
 {
 	libthinkfinger_init_status retval = TF_INIT_UNDEFINED;
 	int i = 0;
@@ -460,17 +465,12 @@ _libthinkfinger_init (libthinkfinger *tf)
 	} while (init[++i].data);
 	_libthinkfinger_task_stop (tf);
 
-	retval = _libthinkfinger_usb_init (tf);
-	if (retval != TF_INIT_USB_INIT_SUCCESS)
-		goto out;
-
 	retval = TF_INIT_SUCCESS;
 out:
 	return retval;
 }
 
-static int
-_libthinkfinger_verify_run (libthinkfinger *tf)
+static int _libthinkfinger_verify_run (libthinkfinger *tf)
 {
 	int retval = -1;
 	int header = 13*3-1;
@@ -500,8 +500,9 @@ _libthinkfinger_verify_run (libthinkfinger *tf)
 	_libthinkfinger_task_start (tf, TF_TASK_VERIFY);
 	_libthinkfinger_ask_scanner_raw (tf, 0, ctrlbuf, header+filesize+2);
 	while (_libthinkfinger_task_running (tf) == true) {
-		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_one, sizeof(scan_sequence_one));
-		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_two, sizeof(scan_sequence_two));
+		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_a, sizeof(scan_sequence_a));
+		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_b, sizeof(scan_sequence_b));
+		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_c, sizeof(scan_sequence_c));
 	}
 	_libthinkfinger_task_stop (tf);
 
@@ -515,8 +516,7 @@ out:
 	return retval;
 }
 
-libthinkfinger_result
-libthinkfinger_verify (libthinkfinger *tf)
+libthinkfinger_result libthinkfinger_verify (libthinkfinger *tf)
 {
 	libthinkfinger_result retval = TF_RESULT_UNDEFINED;
 	int usb_retry = USB_RETRY;
@@ -557,8 +557,7 @@ out:
 	return retval;
 }
 
-static int 
-_libthinkfinger_acquire_run (libthinkfinger *tf)
+static int _libthinkfinger_acquire_run (libthinkfinger *tf)
 {
 	int retval = -1;
 	libthinkfinger_init_status init_status;
@@ -578,8 +577,9 @@ _libthinkfinger_acquire_run (libthinkfinger *tf)
 	_libthinkfinger_task_start (tf, TF_TASK_ACQUIRE);
 	_libthinkfinger_ask_scanner_raw (tf, SILENT, enroll_init, sizeof(enroll_init));
 	while (_libthinkfinger_task_running (tf) == true) {
-		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_one, sizeof(scan_sequence_one));
-		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_two, sizeof(scan_sequence_two));
+		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_a, sizeof(scan_sequence_a));
+		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_b, sizeof(scan_sequence_b));
+		_libthinkfinger_ask_scanner_raw (tf, PARSE, scan_sequence_c, sizeof(scan_sequence_c));
 	}
 	_libthinkfinger_task_stop (tf);
 
@@ -593,8 +593,7 @@ out:
 	return retval;
 }
 
-libthinkfinger_result
-libthinkfinger_acquire (libthinkfinger *tf)
+libthinkfinger_result libthinkfinger_acquire (libthinkfinger *tf)
 {
 	libthinkfinger_result retval = TF_RESULT_UNDEFINED;
 
@@ -625,8 +624,7 @@ out:
 	return retval;
 }
 
-int
-libthinkfinger_set_file (libthinkfinger *tf, const char *file)
+int libthinkfinger_set_file (libthinkfinger *tf, const char *file)
 {
 	int retval = -1;
 
@@ -641,8 +639,7 @@ out:
 	return retval;
 }
 
-int
-libthinkfinger_set_callback (libthinkfinger *tf, libthinkfinger_state_cb cb, void *cb_data)
+int libthinkfinger_set_callback (libthinkfinger *tf, libthinkfinger_state_cb cb, void *cb_data)
 {
 	int retval = -1;
 
@@ -658,8 +655,7 @@ out:
 	return retval;
 }
 
-libthinkfinger *
-libthinkfinger_new (libthinkfinger_init_status *init_status)
+libthinkfinger *libthinkfinger_new (libthinkfinger_init_status *init_status)
 {
 	libthinkfinger *tf = NULL;
 
@@ -671,7 +667,7 @@ libthinkfinger_new (libthinkfinger_init_status *init_status)
 		goto out;
 	}
 
-	tf->usb_handle = NULL;
+	tf->usb_dev_handle = NULL;
 	tf->file = NULL;
 	tf->fd = -1;
 	tf->write_fingerprint = false;
@@ -686,8 +682,7 @@ out:
 	return tf;
 }
 
-void
-libthinkfinger_free (libthinkfinger *tf)
+void libthinkfinger_free (libthinkfinger *tf)
 {
 	if (tf == NULL) {
 		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
