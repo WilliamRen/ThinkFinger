@@ -63,10 +63,12 @@ static void pam_thinkfinger_log (int type, const char *format, ...)
 	char message[LINE_MAX];
 	va_list ap;
 	if (pam_tf_debug) {
+		openlog ("auth", LOG_CONS | LOG_PID, LOG_AUTHPRIV);
 		va_start (ap, format);
 		vsnprintf (message, sizeof(message), format, ap);
 		va_end(ap);
-		syslog (type, PAM_TF_MODULE ": %s", message);
+		syslog (LOG_AUTHPRIV | type, PAM_TF_MODULE ": %s", message);
+		closelog ();
 	}
 }
 
