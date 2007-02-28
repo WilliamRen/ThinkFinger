@@ -689,6 +689,10 @@ void libthinkfinger_free (libthinkfinger *tf)
 		goto out;
 	}
 
+	/* If the scanner is waiting for a swipe we have to ask the device to reinitialize. Otherwise it gets hot. */
+	if (tf->state == TF_STATE_SWIPE_0 || tf->state == TF_STATE_SWIPE_1 || tf->state == TF_STATE_SWIPE_2)
+		usb_bulk_write (tf->usb_dev_handle, 0x02, (char *) init[0].data, init[0].len, USB_TIMEOUT);
+
 	_libthinkfinger_usb_deinit (tf);
 
 	if (tf->fd)
