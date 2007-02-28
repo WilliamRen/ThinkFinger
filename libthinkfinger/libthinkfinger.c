@@ -251,7 +251,7 @@ static void
 _libthinkfinger_parse_scan_reply (libthinkfinger *tf, unsigned char *inbuf)
 {
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -286,7 +286,7 @@ _libthinkfinger_parse_scan_reply (libthinkfinger *tf, unsigned char *inbuf)
 			break;
 		default:
 #ifdef LIBTHINKFINGER_DEBUG
-			printf ("Unknown state 0x%x\n", inbuf[18]);
+			fprintf (stderr, "Unknown state 0x%x\n", inbuf[18]);
 #endif
 			break;
 	}
@@ -301,7 +301,7 @@ _libthinkfinger_store_fingerprint (libthinkfinger *tf, unsigned char *data)
 	int retval = -1;
 
 	if ((tf == NULL) || (tf->fd < 0)) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -329,7 +329,7 @@ _libthinkfinger_parse (libthinkfinger *tf, unsigned char *inbuf)
 	};
 
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -387,7 +387,7 @@ _libthinkfinger_ask_scanner_raw (libthinkfinger *tf, int flags, char *ctrldata, 
 	unsigned char inbuf[10240];
 
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -523,7 +523,7 @@ libthinkfinger_verify (libthinkfinger *tf)
 	int result_pending;
 
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -599,7 +599,7 @@ libthinkfinger_acquire (libthinkfinger *tf)
 	libthinkfinger_result retval = TF_RESULT_UNDEFINED;
 
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -631,7 +631,7 @@ libthinkfinger_set_file (libthinkfinger *tf, const char *file)
 	int retval = -1;
 
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -647,7 +647,7 @@ libthinkfinger_set_callback (libthinkfinger *tf, libthinkfinger_state_cb cb, voi
 	int retval = -1;
 
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
@@ -690,7 +690,7 @@ void
 libthinkfinger_free (libthinkfinger *tf)
 {
 	if (tf == NULL) {
-		printf ("Error: libthinkfinger not properly initialized.\n");
+		fprintf (stderr, "Error: libthinkfinger not properly initialized.\n");
 		goto out;
 	}
 
