@@ -29,9 +29,9 @@ Turns on debugging via \fBsyslog\fR(3)
 .SH "REQUIREMENTS"
 .PD 0
 In order to use the the PAM module pam_thinkfinger your Linux kernel has to be
-compiled with uinput support.  The location of the uinput interface depends on
-your distribution.  To ensure that your system is properly set up, one of the
-following interfaces have to exist:
+compiled with uinput support (CONFIG_INPUT_UINPUT).  The location of the uinput
+interface depends on your distribution.  To ensure that your system is properly
+set up, one of the following interfaces have to exist:
 
 .TP
 .I /dev/input/uinput
