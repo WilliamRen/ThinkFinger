@@ -43,7 +43,7 @@
 #define VENDOR_ID   0x0483
 #define PRODUCT_ID  0x2016
 #define USB_TIMEOUT 250
-#define USB_RETRY   100
+#define USB_RETRY   250
 #define USB_DELAY   100 * USB_TIMEOUT
 
 static char init_a[17] = {
