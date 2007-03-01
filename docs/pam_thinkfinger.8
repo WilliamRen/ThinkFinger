@@ -26,6 +26,29 @@ deposited their fingerprint in the \fI/etc/pam_thinkfinger\fP folder.
 debug
 Turns on debugging via \fBsyslog\fR(3)
 
+.SH "REQUIREMENTS"
+.PD 0
+In order to use the the PAM module pam_thinkfinger your Linux kernel has to be
+compiled with uinput support.  The location of the uinput interface depends on
+your distribution.  To ensure that your system is properly set up, one of the
+following interfaces have to exist:
+
+.TP
+.I /dev/input/uinput
+.TP
+.I /dev/misc/uinput
+.TP
+.I /dev/uinput
+
+.TP
+If the interface is not there, run:
+
+.TP
+$ modprobe uinput
+
+.TP
+Ask your the maintainers of your distribution to automatically load the module.
+
 .SH "FILES"
 .PD 0
 .TP

@@ -18,6 +18,24 @@ To have access to the optional documentation, you also need:
 
 - doxygen (http://www.stack.nl/~dimitri/doxygen/)
 
+Kernel Requirements
+===================
+
+In order to use the the PAM module pam_thinkfinger your Linux kernel has to be
+compiled with uinput support.  The location of the uinput interface depends on
+your distribution.  To ensure that your system is properly set up, one of the
+following interfaces have to exist:
+
+  * /dev/input/uinput
+  * /dev/misc/uinput
+  * /dev/uinput
+
+If the interface is not there, run:
+
+  $ modprobe uinput
+
+Ask your the maintainers of your distribution to automatically load the module.
+
 Installation Steps
 ==================
 
