@@ -215,7 +215,6 @@ static struct usb_device *_libthinkfinger_usb_device_find (void)
 static void _libthinkfinger_usb_deinit (libthinkfinger *tf)
 {
 	if (tf->usb_dev_handle) {
-		usb_reset (tf->usb_dev_handle);
 		usb_release_interface (tf->usb_dev_handle, 0);
 		usb_close (tf->usb_dev_handle);
 	}
