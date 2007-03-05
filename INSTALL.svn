@@ -1,0 +1,13 @@
+Instructions For SVN
+====================
+
+If you are compiling from an SVN checkout, you need:
+
+- autoconf, version >= 2.54 (http://www.gnu.org/software/autoconf/)
+- automake, version >= 1.7.9 (http://www.gnu.org/software/automake/)
+
+Before the './configure' script run:
+
+  $ ./autogen.sh
+
+Once done, please follow the instructions from INSTALL.

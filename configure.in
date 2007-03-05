@@ -168,6 +168,8 @@ AM_CONDITIONAL(HAVE_OLD_PAM, test "x$HAVE_OLD_PAM" = "xyes")
 
 # AC_CONFIG_FILES
 AC_CONFIG_FILES([Makefile
+		README
+		INSTALL
 		docs/Makefile
 		docs/autodocs/Makefile
 		libthinkfinger/Makefile

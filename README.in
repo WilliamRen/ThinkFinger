@@ -1,5 +1,5 @@
-ThinkFinger
-===========
+@PACKAGE_STRING@
+===============================================================================
 
 ThinkFinger is a driver for the UPEK/SGS Thomson Microelectronics fingerprint
 reader (USB ID 0483:2016).  The device is being found either as a standalone
@@ -59,6 +59,10 @@ to log into your system).  The module needs to be copied to the location
 where PAM expects the modules to reside.  On most GNU/Linux distributions
 PAM modules are stored in '/lib/security'.
 
+Also, the PAM module requires uinput.  For further details, please read section
+"Kernel Requirements" of the installation instructions provided by the file
+'INSTALL'.
+
 In order to use pam_thinkfinger, PAM needs to be aware of the module.  To
 achieve this please edit '/etc/pam.d/common-auth'.  You are required to add
 the following directive before any pam_unix or pam_unix2 directives:
@@ -88,6 +92,14 @@ are available in the Linux-PAM documentation at:
 
   http://www.kernel.org/pub/linux/libs/pam/Linux-PAM-html/sag-pam_unix.html
 
+If you have troubles using the PAM module you may want to pass the 'debug'
+option:
+
+     auth     required     pam_unix.so debug
+
+With this option the PAM module will be verbose and use syslog(3) for debug
+output.
+
 PAM Compatibility
 =================
 
@@ -99,7 +111,17 @@ Authors
 
 Timo Hoenig <thoenig@suse.de>, <thoenig@nouse.net>
 Pavel Machek <pavel@suse.cz>
-Wolfgang Hafenscher <wolfgang@hafenscher.net>
+
+Thanks
+======
+
+Wolfgang Hafenscher <wolfgang@hafenscher.net> (project page)
+Luca Capello <luca@pca.it> (patches, man pages)
+Stephan Berberig <s.berberig@arcor.de> (patches)
+Evgeni Golov <sargentd@die-welt.net>
+
+Also, to big thanks to everyone else involved with the project by testing,
+reporting bugs and communicating on thinkfinger-devel.
 
 Project Page
 ============
@@ -130,7 +152,7 @@ root@host~> tf-tool --add-user bob
 
 ( Now user 'bob' has to swipe his finger three times )
 
-ThinkFinger 0.2.1 (http://thinkfinger.sourceforge.net/)
+@PACKAGE_STRING@ (@PACKAGE_BUGREPORT@)
 Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>
 
 Initializing... done.

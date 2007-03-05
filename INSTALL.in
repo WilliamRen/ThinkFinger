@@ -1,5 +1,5 @@
-ThinkFinger Installation Instructions
-=====================================
+@PACKAGE_STRING@ Installation Instructions
+===============================================================================
 
 This document describes how compile the ThinkFinger software.
 
@@ -58,16 +58,3 @@ When building with PAM support you might also want to adjust the parameter
 biometric identification records (bir files).  Example:
 
   $ ./configure --with-birdir=/etc/pam_thinkfinger
-
-Instructions For SVN
-====================
-
-If you are compiling from an SVN checkout, the first time you also need:
-
-- autoconf, version >= 2.54 (http://www.gnu.org/software/autoconf/)
-- automake, version >= 1.7.9 (http://www.gnu.org/software/automake/)
-
-And before the './configure' script run:
-
-  $ ./autogen.sh
-
