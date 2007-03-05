@@ -34,9 +34,16 @@ swiped.
 .TP
 .BI \--add-user\ "login"
 Acquire a fingerprint for the user identified by login.  If this user
-or the bir folder \fI/etc/pam_thinkfinger\fP do not exist, exits with
-an error.  If the acquiring process is successful, the fingerprint is
-stored in the bir folder as \fI/etc/pam_thinkfinger/login.bir\fP.
+or the bir folder \fI/etc/pam_thinkfinger\fP do not exist, \fBtf-tool\fP
+exits with an error.  If the acquiring process is successful, the fingerprint
+is stored in the bir folder as \fI/etc/pam_thinkfinger/login.bir\fP.
+This option is available only when ThinkFinger has been compiled with
+PAM support.
+.TP
+.BI \--verify-user\ "login"
+Verify a fingerprint for the user identified by login.  If this user
+or the bir folder \fI/etc/pam_thinkfinger\fP do not exist, \fBtf-tool\fP exits
+with an error.
 This option is available only when ThinkFinger has been compiled with
 PAM support.
 .TP
