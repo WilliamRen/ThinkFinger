@@ -42,7 +42,6 @@
 #define MAX_PATH 256
 
 #define PAM_SM_AUTH
-#define PAM_TF_MODULE "pam_thinkfinger"
 
 volatile static int pam_tf_debug = 0;
 
