@@ -54,16 +54,14 @@ typedef struct {
 	int swipe_failed;
 } s_tfdata;
 
-static void
-print_status (int swipe_success, int swiped_required, int swipe_failed)
+static void print_status (int swipe_success, int swiped_required, int swipe_failed)
 {
 	printf ("\rPlease swipe your finger (successful swipes %i/%i, failed swipes: %i)...",
 		swipe_success, swiped_required, swipe_failed);
 	fflush (stdout);
 }
 
-static void
-callback (libthinkfinger_state state, void *data)
+static void callback (libthinkfinger_state state, void *data)
 {
 	char *str;
 	s_tfdata *tfdata = (s_tfdata *) data;
@@ -151,14 +149,18 @@ callback (libthinkfinger_state state, void *data)
 	}
 }
 
-static void
-usage (char *name)
+static void usage (char *name)
 {
 	printf ("Usage: %s %s\n", basename (name), usage_string);
 }
 
-static _Bool
-user_exists (const char* login)
+static int user_sanity_check (const char *user)
+{
+	size_t len = strlen(user);
+	return strstr(user, "../") || user[0] == '-' || user[len - 1] == '/';
+}
+
+static _Bool user_exists (const char* login)
 {
 	_Bool retval = false;
 
@@ -171,8 +173,7 @@ user_exists (const char* login)
 	return retval;
 }
 
-static void
-raise_error (libthinkfinger_init_status init_status) {
+static void raise_error (libthinkfinger_init_status init_status) {
 	const char *msg;
 
 	switch (init_status) {
@@ -203,12 +204,11 @@ raise_error (libthinkfinger_init_status init_status) {
 	return;
 }
 
-static int
-acquire (const s_tfdata *tfdata)
+static int acquire (const s_tfdata *tfdata)
 {
 	libthinkfinger *tf;
 	libthinkfinger_init_status init_status;
-	int tf_state;
+	libthinkfinger_result tf_result;
 	int retval = -1;
 
 	printf ("Initializing...");
@@ -225,15 +225,23 @@ acquire (const s_tfdata *tfdata)
 	if (libthinkfinger_set_callback (tf, callback, (void *)tfdata) < 0)
 		goto out;
 
-	tf_state = libthinkfinger_acquire (tf);
-	switch (tf_state) {
-		case TF_STATE_ACQUIRE_SUCCESS:
+	tf_result = libthinkfinger_acquire (tf);
+	switch (tf_result) {
+		case TF_RESULT_ACQUIRE_SUCCESS:
 			retval = 0;
 			break;
-		case TF_STATE_ACQUIRE_FAILED:
+		case TF_RESULT_ACQUIRE_FAILED:
 			retval = -1;
 			break;
-		case TF_STATE_USB_ERROR:
+		case TF_RESULT_OPEN_FAILED:
+			retval = -1;
+			printf ("Could not open '%s'.\n", tfdata->bir);
+			break;
+		case TF_RESULT_SIGINT:
+			retval = -1;
+			printf ("Interrupted\n.");
+			break;
+		case TF_RESULT_USB_ERROR:
 			printf ("Could not acquire fingerprint (USB error).\n");
 			retval = -1;
 			break;
@@ -242,7 +250,7 @@ acquire (const s_tfdata *tfdata)
 			retval = -1;
 			break;
 		default:
-			printf ("Undefined error occured (%i).\n", tf_state);
+			printf ("Undefined error occured (0x%02x).\n", tf_result);
 			retval = -1;
 			break;
 	}
@@ -252,12 +260,11 @@ out:
 	return retval;
 }
 
-static int
-verify (const s_tfdata *tfdata)
+static int verify (const s_tfdata *tfdata)
 {
 	libthinkfinger *tf;
 	libthinkfinger_init_status init_status;
-	int tf_state;
+	libthinkfinger_result tf_result;
 	int retval = -1;
 
 	printf ("Initializing...");
@@ -275,15 +282,23 @@ verify (const s_tfdata *tfdata)
 	if (libthinkfinger_set_callback (tf, callback, (void *)tfdata) < 0)
 		goto out;
 
-	tf_state = libthinkfinger_verify (tf);
-	switch (tf_state) {
-		case TF_STATE_VERIFY_SUCCESS:
+	tf_result = libthinkfinger_verify (tf);
+	switch (tf_result) {
+		case TF_RESULT_VERIFY_SUCCESS:
 			retval = 0;
 			break;
-		case TF_STATE_VERIFY_FAILED:
+		case TF_RESULT_VERIFY_FAILED:
 			retval = -1;
 			break;
-		case TF_STATE_USB_ERROR:
+		case TF_RESULT_OPEN_FAILED:
+			retval = -1;
+			printf ("Could not open '%s'.\n", tfdata->bir);
+			break;
+		case TF_RESULT_SIGINT:
+			retval = -1;
+			printf ("Interrupted\n.");
+			break;
+		case TF_RESULT_USB_ERROR:
 			printf ("Could not acquire fingerprint (USB error).\n");
 			retval = -1;
 			break;
@@ -292,7 +307,8 @@ verify (const s_tfdata *tfdata)
 			retval = -1;
 			break;
 		default:
-			printf ("Undefined error occured. (%i)\n", tf_state);
+			printf ("Undefined error occured (0x%02x).\n", tf_result);
+
 			retval = -1;
 			break;
 	}
@@ -371,7 +387,7 @@ main (int argc, char *argv[])
 				retval = -1;
 				goto out;
 			}
-			if (user_exists (user) == false ) {
+			if (user_sanity_check (user) || user_exists (user) == false ) {
 				printf ("The user \"%s\" does not exist.\n", user);
 				retval = -1;
 				goto out;
@@ -408,7 +424,7 @@ main (int argc, char *argv[])
 				retval = -1;
 				goto out;
 			}
-			if (user_exists (user) == false ) {
+			if (user_sanity_check (user) || user_exists (user) == false ) {
 				printf ("The user \"%s\" does not exist.\n", user);
 				retval = -1;
 				goto out;
