@@ -38,6 +38,15 @@ AM_PROG_CC_C_O
 # Checks for header files.
 AC_CHECK_HEADERS([errno.h stdio.h stdlib.h string.h syslog.h unistd.h usb.h])
 
+# AC_ARG_ENABLE USB_DEBUG
+AC_MSG_CHECKING([whether to build with USB hooks for debugging])
+AC_ARG_ENABLE(usb-debug, AC_HELP_STRING([--enable-usb-debug],[build with USB hooks for debugging]),enable_usb_debug=$enableval,enable_usb_debug=no)
+AC_MSG_RESULT([$enable_usb_debug])
+
+if test "x$enable_usb_debug" = "xyes"; then
+	AC_DEFINE_UNQUOTED(USB_DEBUG, 1, [Define to 1 if you want to build with USB hooks for debugging.])
+fi
+
 # AC_ARG_ENABLE PAM
 AC_MSG_CHECKING([whether to build the pluggable authentication module (PAM)])
 AC_ARG_ENABLE(pam, AC_HELP_STRING([--enable-pam],[build PAM module]),enable_pam=$enableval,enable_pam=yes)
@@ -46,7 +55,6 @@ AC_MSG_RESULT([$enable_pam])
 if test "x$enable_pam" != "xno"; then
 	AC_CHECK_HEADERS(security/pam_appl.h security/pam_modules.h,, AC_MSG_ERROR(PAM header files not found))
 	AC_CHECK_LIB(pam, pam_start, [PAM_LIBS="-lpam"], AC_MSG_ERROR([libpam missing]))
-	AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS="-lpthread"], AC_MSG_ERROR([libpthread missing]))
 	AC_DEFINE(BUILD_PAM, 1, [Define to 1 if you want to build with PAM support.])
 	AC_CHECK_LIB(pam, pam_prompt, , HAVE_OLD_PAM=yes
 				AC_DEFINE(HAVE_OLD_PAM,1,
@@ -70,6 +78,9 @@ AC_ARG_ENABLE(securedir, AC_HELP_STRING([--with-securedir=dir],[Where to put PAM
 
 # AC_ARG_ENABLE_BIR_DIR
 AC_ARG_ENABLE(birdir, AC_HELP_STRING([--with-birdir=dir],[Where to put the biometric identification records (bir files) @<:@default=$sysconfdir/pam_thinkfinger@:>@]))
+
+# Check for pthread
+AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS="-lpthread"], AC_MSG_ERROR([libpthread missing]))
 
 # Check for libusb using pkg-config
 PKG_CHECK_MODULES(USB, libusb >= 0.1.11, usb_found=yes, AC_MSG_ERROR([libusb missing]))
@@ -191,12 +202,18 @@ echo "
 
  + cflags:		${CFLAGS}
  + libusb:		${USB_LIBS}
+
+ Debugging
+ =========
+
+ + enable USB hooks:	$enable_usb_debug
+
 "
 
 if test  "x$enable_pam" = "xyes" ; then
 echo " Build PAM module:	$enable_pam
 
- + libpam:              ${PAM_LIBS}
+ + libpam:		${PAM_LIBS}
  + libpthread:		${PTHREAD_LIBS}
  + securedir:		${SECUREDIR}
  + birdir:		${BIRDIR}

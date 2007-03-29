@@ -45,16 +45,23 @@ Once the necessary software is installed, run:
   $ make
   $ make install
 
-Note:  For a proper installation it is very likely that you have to use the
-parameter '--with-securedir=$PAM_MODULES_DIR' when running 'configure'.
-$PAM_MODULES_DIR is the directory where your PAM installation expects the
-pluggable authentication modules.  It is convenient that this directory is
-'/lib/security'.  Example:
+You can enable USB debugging support by running 'configure' with the parameter
+'--enable-usb-debug'.  Example:
 
-  $ ./configure --with-securedir=/lib/security
+   $ ./configure --enable-usb-debug
+
+PAM Specific Notes
+==================
+
+For a proper installation it is very likely that you have to use the parameter
+'--with-securedir=$PAM_MODULES_DIR' when running 'configure'. $PAM_MODULES_DIR
+is the directory where the PAM expects the pluggable authentication modules.
+It is convenient that this directory is '/lib/security'.  Example:
+
+   $ ./configure --with-securedir=/lib/security
 
 When building with PAM support you might also want to adjust the parameter
 '--with-birdir'.  The ThinkFinger PAM module uses this directory to look up the
 biometric identification records (bir files).  Example:
 
-  $ ./configure --with-birdir=/etc/pam_thinkfinger
+   $ ./configure --with-birdir=/etc/pam_thinkfinger
