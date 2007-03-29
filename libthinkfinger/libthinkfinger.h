@@ -27,12 +27,18 @@
 #ifndef THINKFINGER_H
 #define THINKFINGER_H
 
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <signal.h>
 #include <usb.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <pthread.h>
+
+#include <config.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,6 +86,8 @@ typedef enum {
 	TF_STATE_ACQUIRE_FAILED      = 0x09, // acquirement failed
 	TF_STATE_VERIFY_SUCCESS      = 0x0a, // verification successful
 	TF_STATE_VERIFY_FAILED       = 0x0b, // verification failed
+	TF_STATE_OPEN_FAILED         = 0xfb, // open(2) failed
+	TF_STATE_SIGINT              = 0xfc, // received sigint
 	TF_STATE_USB_ERROR           = 0xfd, // USB error
 	TF_STATE_COMM_FAILED         = 0xfe, // communication error
 	TF_STATE_UNDEFINED           = 0xff  // undefined
@@ -90,6 +98,8 @@ typedef enum {
 	TF_RESULT_ACQUIRE_FAILED     = TF_STATE_ACQUIRE_FAILED,  // acquirement failed
 	TF_RESULT_VERIFY_SUCCESS     = TF_STATE_VERIFY_SUCCESS,  // verification successful
 	TF_RESULT_VERIFY_FAILED      = TF_STATE_VERIFY_FAILED,   // verification failed
+	TF_RESULT_OPEN_FAILED        = TF_STATE_OPEN_FAILED,     // open(2) failed
+	TF_RESULT_SIGINT             = TF_STATE_SIGINT,          // received sigint
 	TF_RESULT_USB_ERROR          = TF_STATE_USB_ERROR,       // USB error
 	TF_RESULT_COMM_FAILED        = TF_STATE_COMM_FAILED,     // communication error
 	TF_RESULT_UNDEFINED          = TF_STATE_UNDEFINED        // undefined
@@ -144,7 +154,6 @@ libthinkfinger_result libthinkfinger_acquire(libthinkfinger *tf);
  * @return libthinkfinger_result
  */
 libthinkfinger_result libthinkfinger_verify(libthinkfinger *tf);
-
 
 /** @brief create a struct libthinkfinger
  *
