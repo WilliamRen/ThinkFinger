@@ -9,4 +9,4 @@ libthinkfinger_la_LDFLAGS = -version-info 0:0:0 $(USB_LIBS)
 pkgconfigdir = $(LIBDIR)/pkgconfig
 pkgconfig_DATA = libthinkfinger.pc
 
-libthinkfinger_so_LDADD = $(PTHREAD_LIBS)
+libthinkfinger_la_LIBADD = $(PTHREAD_LIBS)
