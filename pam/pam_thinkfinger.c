@@ -85,17 +85,25 @@ static void pam_thinkfinger_options (const pam_thinkfinger_s *pam_thinkfinger, i
 	}
 }
 
-static int pam_thinkfinger_check_user (const pam_thinkfinger_s *pam_thinkfinger)
+static int pam_thinkfinger_user_sanity_check (const pam_thinkfinger_s *pam_thinkfinger)
+{
+	const char *user = pam_thinkfinger->user;
+	size_t len = strlen(user);
+
+	return strstr(user, "../") || user[0] == '-' || user[len - 1] == '/';
+}
+
+static int pam_thinkfinger_user_bir_check (const pam_thinkfinger_s *pam_thinkfinger)
 {
 	int retval = -1;
 	int fd;
 	char bir_file[MAX_PATH];
 
 	snprintf (bir_file, MAX_PATH-1, "%s/%s.bir", PAM_BIRDIR, pam_thinkfinger->user);
-	fd = open (bir_file, O_RDONLY);
+	fd = open (bir_file, O_RDONLY | O_NOFOLLOW);
 	if (fd == -1) {
 		pam_thinkfinger_log (pam_thinkfinger, LOG_ERR,
-				     "Could not open '%s/%s.bir'.", PAM_BIRDIR, pam_thinkfinger->user);
+				     "Could not open '%s/%s.bir': (%s).", PAM_BIRDIR, pam_thinkfinger->user, strerror (errno));
 		goto out;
 	}
 
@@ -110,6 +118,7 @@ static libthinkfinger_state pam_thinkfinger_verify (const pam_thinkfinger_s *pam
 {
 	libthinkfinger_state tf_state = TF_STATE_VERIFY_FAILED;
 	char bir_file[MAX_PATH];
+	int retry = 20;
 
 	snprintf (bir_file, MAX_PATH, "%s/%s.bir", PAM_BIRDIR, pam_thinkfinger->user);
 
@@ -117,8 +126,12 @@ static libthinkfinger_state pam_thinkfinger_verify (const pam_thinkfinger_s *pam
 		goto out;
 
 	libthinkfinger_set_file (pam_thinkfinger->tf, bir_file);
-	tf_state = libthinkfinger_verify (pam_thinkfinger->tf);
+	/* if the USB device is being removed while verification (e.g. suspend) retry */
+	while ((tf_state = libthinkfinger_verify (pam_thinkfinger->tf)) == TF_RESULT_USB_ERROR && --retry > 0)
+		usleep (250000);
 
+	if (retry == 0 && tf_state == TF_STATE_USB_ERROR)
+		pam_thinkfinger_log (pam_thinkfinger, LOG_WARNING, "USB device did not reappear in time");
 out:
 	return tf_state;
 }
@@ -131,7 +144,6 @@ static void thinkfinger_thread (void *data)
 
 	pam_thinkfinger_log (pam_thinkfinger, LOG_NOTICE, "%s called.", __FUNCTION__);
 
-	pam_thinkfinger->swipe_retval = PAM_SERVICE_ERR;
 	tf_state = pam_thinkfinger_verify (pam_thinkfinger);
 	if (tf_state == TF_RESULT_VERIFY_SUCCESS) {
 		pam_thinkfinger->swipe_retval = PAM_SUCCESS;
@@ -165,9 +177,13 @@ static void pam_prompt_thread (void *data)
 	pam_thinkfinger_s *pam_thinkfinger = data;
 	char *resp;
 
+	/* always returning from pam_prompt due to the CR sent by the keyboard or by uinput */
 	pam_prompt (pam_thinkfinger->pamh, PAM_PROMPT_ECHO_OFF, &resp, "Password or swipe finger: ");
 	pam_set_item (pam_thinkfinger->pamh, PAM_AUTHTOK, resp);
-	pthread_cancel (pam_thinkfinger->t_thinkfinger);
+
+	/* ThinkFinger thread will return once we call libthinkfinger_free */
+	if (pam_thinkfinger->tf != NULL)
+		libthinkfinger_free (pam_thinkfinger->tf);
 
 	pthread_exit (NULL);
 }
@@ -211,6 +227,7 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 	struct termios term_attr;
 	libthinkfinger_init_status init_status;
 
+	pam_thinkfinger.swipe_retval = PAM_SERVICE_ERR;
 	pam_thinkfinger.pamh = pamh;
 
 	pam_thinkfinger_options (&pam_thinkfinger, argc, argv);
@@ -221,7 +238,7 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 		tcgetattr (STDIN_FILENO, &term_attr);
 
 	pam_get_user (pamh, &pam_thinkfinger.user, NULL);
-	if (pam_thinkfinger_check_user (&pam_thinkfinger) < 0) {
+	if (pam_thinkfinger_user_sanity_check (&pam_thinkfinger) || pam_thinkfinger_user_bir_check (&pam_thinkfinger) < 0) {
 		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "User '%s' is unknown.", pam_thinkfinger.user);
 		retval = PAM_USER_UNKNOWN;
 		goto out;
@@ -241,13 +258,27 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 		goto out;
 	}
 
-	pthread_create (&pam_thinkfinger.t_thinkfinger, NULL, (void *) &thinkfinger_thread, &pam_thinkfinger);
-	pthread_create (&pam_thinkfinger.t_pam_prompt, NULL, (void *) &pam_prompt_thread, &pam_thinkfinger);
-	pthread_join (pam_thinkfinger.t_pam_prompt, NULL);
-	pthread_join (pam_thinkfinger.t_thinkfinger, NULL);
+	ret = pthread_create (&pam_thinkfinger.t_pam_prompt, NULL, (void *) &pam_prompt_thread, &pam_thinkfinger);
+	if (ret != 0) {
+		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "Error calling pthread_create (%s).", strerror (ret));
+		goto out;
+	}
+	ret = pthread_create (&pam_thinkfinger.t_thinkfinger, NULL, (void *) &thinkfinger_thread, &pam_thinkfinger);
+	if (ret != 0) {
+		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "Error calling pthread_create (%s).", strerror (ret));
+		goto out;
+	}
+	ret = pthread_join (pam_thinkfinger.t_thinkfinger, NULL);
+	if (ret != 0) {
+		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "Error calling pthread_join (%s).", strerror (ret));
+		goto out;
+	}
+	ret = pthread_join (pam_thinkfinger.t_pam_prompt, NULL);
+	if (ret != 0) {
+		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "Error calling pthread_join (%s).", strerror (ret));
+		goto out;
+	}
 
-	if (pam_thinkfinger.tf)
-		libthinkfinger_free (pam_thinkfinger.tf);
 	if (pam_thinkfinger.uinput_fd > 0)
 		uinput_close (&pam_thinkfinger.uinput_fd);
 	if (pam_thinkfinger.isatty == 1) {
@@ -277,7 +308,6 @@ int pam_sm_chauthtok (pam_handle_t *pamh, int flags, int argc, const char **argv
 }
 
 #ifdef PAM_STATIC
-
 struct pam_module _pam_thinkfinger_modstruct = {
 	"pam_thinkfinger",
 	pam_sm_authenticate,
@@ -287,5 +317,4 @@ struct pam_module _pam_thinkfinger_modstruct = {
 	NULL,
 	pam_sm_chauthtok
 };
-
 #endif
