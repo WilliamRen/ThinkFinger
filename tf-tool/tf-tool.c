@@ -299,11 +299,11 @@ static int verify (const s_tfdata *tfdata)
 			printf ("Interrupted\n.");
 			break;
 		case TF_RESULT_USB_ERROR:
-			printf ("Could not acquire fingerprint (USB error).\n");
+			printf ("Could not verify fingerprint (USB error).\n");
 			retval = -1;
 			break;
 		case TF_RESULT_COMM_FAILED:
-			printf ("Could not acquire fingerprint (communication with fingerprint reader failed).\n");
+			printf ("Could not verify fingerprint (communication with fingerprint reader failed).\n");
 			retval = -1;
 			break;
 		default:
