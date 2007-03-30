@@ -26,13 +26,6 @@
  *   Hardware should be 248 x 4 pixels, 8bit per pixel, but seems to do matching
  *   completely in hardware.
  *
- *   Use thinkfinger to create result.bir files (you'll need to swipe
- *   finger 3 times). Use thinkfinger something.bir to recognize if
- *   it is the right fingerprint. Note: closed-source version will eat
- *   these .bir files (but they are two bytes too long), but thinkfinger
- *   will not eat files from closed-source version (see HACK for line
- *   that breaks it).
- *
  *   TODO: this is not true for all distributions
  *   Note that you need to be root to use this.
  */
@@ -736,7 +729,6 @@ static void _libthinkfinger_verify_run (libthinkfinger *tf)
 	}
 
 	filesize = read (tf->fd, ctrlbuf+header, sizeof(ctrlbuf)-header);
-	filesize -= 2; // HACK!
 	*((short *) (ctrlbuf+8)) = filesize + 28;
 	ctrlbuf[5] = (filesize+20511) >> 8;
 	ctrlbuf[6] = (filesize+20511) & 0xff;
@@ -798,7 +790,7 @@ libthinkfinger_result libthinkfinger_acquire (libthinkfinger *tf)
 		goto out;
 	}
 
-	_libthinkfinger_init (tf);	
+	_libthinkfinger_init (tf);
 	_libthinkfinger_acquire_run (tf);
 	retval = _libthinkfinger_get_result (tf->state);
 out:
