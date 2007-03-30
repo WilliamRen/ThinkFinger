@@ -1,3 +1,188 @@
+2007-03-30 09:41  Timo Hoenig <thoenig@suse.de>
+
+	* [r107] NEWS: Release: ThinkFinger 0.3
+
+2007-03-30 09:14  Timo Hoenig <thoenig@suse.de>
+
+	* [r106] configure.in: Bump version number: 0.3
+
+2007-03-30 09:01  Timo Hoenig <thoenig@suse.de>
+
+	* [r105] tf-tool/tf-tool.c: Print state as hex, whitespace fix.
+
+2007-03-30 08:33  Timo Hoenig <thoenig@suse.de>
+
+	* [r104] libthinkfinger/libthinkfinger.c: Remove HACK, our
+	  biometric identification records are now compatible with the ones
+	  of the binary driver, whitespace fix.
+
+2007-03-29 17:51  Timo Hoenig <thoenig@suse.de>
+
+	* [r103] tf-tool/tf-tool.c: Fix c'n'p errror: s/acquire/verify .
+
+2007-03-29 15:17  Timo Hoenig <thoenig@suse.de>
+
+	* [r102] libthinkfinger/Makefile.am: s/so_LDADD/la_LIBADD
+
+2007-03-29 15:08  Timo Hoenig <thoenig@suse.de>
+
+	* [r101] INSTALL.in, configure.in: Add some notes about
+	  '--enable-debug' to the documentation.
+
+2007-03-29 15:07  Timo Hoenig <thoenig@suse.de>
+
+	* [r100] tf-tool/tf-tool.c: Add sanity checks for user name,
+	  respect TF_RESULT_OPEN_FAILED and TF_RESULT_SIGINT, cleanups.
+
+2007-03-29 15:06  Timo Hoenig <thoenig@suse.de>
+
+	* [r99] pam/pam_thinkfinger.c: Add sanity checks for user name and
+	  pthread_* calls.
+
+2007-03-29 15:05  Timo Hoenig <thoenig@suse.de>
+
+	* [r98] libthinkfinger/Makefile.am: Link against -lpthread.
+
+2007-03-29 15:05  Timo Hoenig <thoenig@suse.de>
+
+	* [r97] libthinkfinger/libthinkfinger.c,
+	  libthinkfinger/libthinkfinger.h: Complete device protocol to the
+	  most possible extent, add debug option for USB traffic.
+
+2007-03-05 09:39  Timo Hoenig <thoenig@suse.de>
+
+	* [r96] INSTALL, INSTALL.in, INSTALL.svn, README, README.in,
+	  autogen.sh, configure.in: Add README.in, INSTALL.in and
+	  INSTALL.svn, remove README and INSTALL as they are now being
+	  generated when running ./configure.
+
+2007-03-05 08:48  Timo Hoenig <thoenig@suse.de>
+
+	* [r95] pam/pam_thinkfinger.c: Remove obsolete define. Patch by
+	  Stephan Berberig <s.berberig@arcor.de>.
+
+2007-03-05 08:47  Timo Hoenig <thoenig@suse.de>
+
+	* [r94] docs/pam_thinkfinger.8, docs/tf-tool.1: Corrections, update
+	  man pages. Patch by Stephan Berberig <s.berberig@arcor.de>.
+
+2007-03-02 13:50  Timo Hoenig <thoenig@suse.de>
+
+	* [r93] pam/pam_thinkfinger.c: Use pam_syslog for debugging, again.
+
+2007-03-02 13:49  Timo Hoenig <thoenig@suse.de>
+
+	* [r92] libthinkfinger/libthinkfinger.c: Do not reset USB device on
+	  deinit.
+
+2007-03-01 14:11  Timo Hoenig <thoenig@suse.de>
+
+	* [r91] INSTALL, docs/pam_thinkfinger.8: Also, mention
+	  CONFIG_INPUT_UINPUT in the docs.
+
+2007-03-01 14:01  Timo Hoenig <thoenig@suse.de>
+
+	* [r90] INSTALL, docs/pam_thinkfinger.8: Update documentation:
+	  uinput is required for the PAM module.
+
+2007-03-01 12:42  Timo Hoenig <thoenig@suse.de>
+
+	* [r89] libthinkfinger/libthinkfinger.c: Raise USB_RETRY to 250
+	  (was 100).
+
+2007-02-28 18:53  Timo Hoenig <thoenig@suse.de>
+
+	* [r88] libthinkfinger/libthinkfinger.c: Avoid the device to heat
+	  up if it was waiting for a swipe. Patch created with great help
+	  of Evgeni Golov <sargentd@die-welt.net> who measured the
+	  temperature.
+
+2007-02-28 16:19  Timo Hoenig <thoenig@suse.de>
+
+	* [r87] libthinkfinger/libthinkfinger.c: Fix initialization for
+	  T43p, introduce scan_sequence_c[]. Reset USB device on deinit.
+
+2007-02-28 11:11  Timo Hoenig <thoenig@suse.de>
+
+	* [r86] libthinkfinger/libthinkfinger.c: Use fprintf rather than
+	  printf. Based on patch by Jose Plans <jplans@redhat.com>.
+
+2007-02-28 11:10  Timo Hoenig <thoenig@suse.de>
+
+	* [r85] pam/pam_thinkfinger.c: Fix logging for Ubuntu. Based on
+	  patch by Jose Plans <jplans@redhat.com>.
+
+2007-02-27 16:54  Timo Hoenig <thoenig@suse.de>
+
+	* [r84] pam/pam_thinkfinger-uinput.c: Be a little more persistent
+	  when looking for the uinput device. Patch by Jose Plans
+	  <jplans@redhat.com>.
+
+2007-02-27 16:30  Timo Hoenig <thoenig@suse.de>
+
+	* [r83] pam/pam_thinkfinger.c: Fix return values for
+	  pam_sm_authenticate. Patch by Jose Plans <jplans@redhat.com>.
+
+2007-02-27 15:26  Timo Hoenig <thoenig@suse.de>
+
+	* [r82] configure.in: HAVE_OLD_PAM: Switch '--with-securedir' is
+	  not required if PAM is disabled. Patch by Stephan Berberig
+	  <s.berberig@arcor.de>.
+
+2007-02-27 15:21  Timo Hoenig <thoenig@suse.de>
+
+	* [r81] docs/pam_thinkfinger.8: Mention 'debug' option for
+	  pam_thinkfinger in the man page. Based on patch by Jose Plans
+	  <jplans@redhat.com>
+
+2007-02-27 15:20  Timo Hoenig <thoenig@suse.de>
+
+	* [r80] pam/pam_thinkfinger-uinput.c, pam/pam_thinkfinger.c: Add
+	  option 'debug' for pam_thinkfinger'. Based on patch by Jose Plans
+	  <jplans@redhat.com>. Minor changes for pam_thinkfinger-uinput.c.
+
+2007-02-27 12:45  Timo Hoenig <thoenig@suse.de>
+
+	* [r79] configure.in: Bump version number, check for input and
+	  uinput headers.:q
+
+2007-02-27 12:43  Timo Hoenig <thoenig@suse.de>
+
+	* [r78] tf-tool/tf-tool.c: Add parameter '--verify-user <login>,
+	  coding style cleanup.
+
+2007-02-27 12:40  Timo Hoenig <thoenig@suse.de>
+
+	* [r77] pam/Makefile.am, pam/pam_thinkfinger-uinput.c,
+	  pam/pam_thinkfinger-uinput.h, pam/pam_thinkfinger.c: Switch to
+	  uinput, do not allow several swipes but one.
+
+2007-02-27 12:38  Timo Hoenig <thoenig@suse.de>
+
+	* [r76] libthinkfinger/libthinkfinger.c,
+	  libthinkfinger/libthinkfinger.h: Handle situations in which the
+	  USB device disappears on surprise (e.g. suspend), coding style
+	  cleanup.
+
+2007-02-22 09:49  Timo Hoenig <thoenig@suse.de>
+
+	* [r75] configure.in: Lower requirement for libusb (libusb >=
+	  0.1.11). Change proposed by Jose Plans <jplans@redhat.com>.
+
+2007-02-22 07:33  Timo Hoenig <thoenig@suse.de>
+
+	* [r74] pam/Makefile.am: Revert patch by Luca Capello
+	  <luca@pca.it>, was SVN r59.
+
+2007-02-21 09:15  Timo Hoenig <thoenig@suse.de>
+
+	* [r73] libthinkfinger/libthinkfinger.c: Avoid buffer overflow.
+	  Patch by ssatoh (sf tracker #1654013)
+
+2007-02-05 12:11  Timo Hoenig <thoenig@suse.de>
+
+	* [r72] ChangeLog: Update ChangeLog.
+
 2007-02-05 11:58  Timo Hoenig <thoenig@suse.de>
 
 	* [r71] NEWS: Release: ThinkFinger 0.2.2
