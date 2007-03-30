@@ -94,7 +94,7 @@ static void callback (libthinkfinger_state state, void *data)
 		else if (state == TF_STATE_INITIAL)
 			str = "TF_STATE_INITIAL";
 
-		printf ("tf-tool: %s (%i)\n", str, state);
+		printf ("tf-tool: %s (0x%02x)\n", str, state);
 	}
 
 	if (tfdata->mode == MODE_ACQUIRE) {
@@ -197,7 +197,7 @@ static void raise_error (libthinkfinger_init_status init_status) {
 		break;
 	default:
 		msg = "Unknown error.";
-	}	
+	}
 
 	printf ("%s\n", msg);
 
