@@ -33,6 +33,7 @@
 #include <pthread.h>
 #include <syslog.h>
 #include <security/pam_modules.h>
+#include <pwd.h>
 #ifdef HAVE_OLD_PAM
 #include "pam_thinkfinger-compat.h"
 #else
@@ -48,6 +49,7 @@ volatile static int pam_tf_debug = 0;
 typedef struct {
 	libthinkfinger *tf;
 	const char *user;
+	char bir_file[MAX_PATH];
 	pthread_t t_pam_prompt;
 	pthread_t t_thinkfinger;
 	int swipe_retval;
@@ -93,17 +95,34 @@ static int pam_thinkfinger_user_sanity_check (const pam_thinkfinger_s *pam_think
 	return strstr(user, "../") || user[0] == '-' || user[len - 1] == '/';
 }
 
-static int pam_thinkfinger_user_bir_check (const pam_thinkfinger_s *pam_thinkfinger)
+static int pam_thinkfinger_user_bir_check (pam_thinkfinger_s *pam_thinkfinger)
 {
 	int retval = -1;
 	int fd;
-	char bir_file[MAX_PATH];
 
-	snprintf (bir_file, MAX_PATH-1, "%s/%s.bir", PAM_BIRDIR, pam_thinkfinger->user);
-	fd = open (bir_file, O_RDONLY | O_NOFOLLOW);
+	struct passwd *pw;
+
+	pw = getpwnam (pam_thinkfinger->user);
+	if (pw == NULL) {
+		pam_thinkfinger_log (pam_thinkfinger, LOG_ERR,
+				     "getpwnam(\"%s\") failed: %s.", pam_thinkfinger->user, strerror (errno));
+		goto out;
+	}
+
+	snprintf (pam_thinkfinger->bir_file, MAX_PATH, "%s/.thinkfinger.bir", pw->pw_dir);
+	fd = open (pam_thinkfinger->bir_file, O_RDONLY | O_NOFOLLOW);
+
 	if (fd == -1) {
 		pam_thinkfinger_log (pam_thinkfinger, LOG_ERR,
-				     "Could not open '%s/%s.bir': (%s).", PAM_BIRDIR, pam_thinkfinger->user, strerror (errno));
+				     "Could not open '%s': (%s).", pam_thinkfinger->bir_file, strerror (errno));
+
+		snprintf (pam_thinkfinger->bir_file, MAX_PATH, "%s/%s.bir", PAM_BIRDIR, pam_thinkfinger->user);
+		fd = open (pam_thinkfinger->bir_file, O_RDONLY | O_NOFOLLOW);
+	}
+
+	if (fd == -1) {
+		pam_thinkfinger_log (pam_thinkfinger, LOG_ERR,
+				     "Could not open '%s': (%s).", pam_thinkfinger->bir_file, strerror (errno));
 		goto out;
 	}
 
@@ -117,15 +136,12 @@ out:
 static libthinkfinger_state pam_thinkfinger_verify (const pam_thinkfinger_s *pam_thinkfinger)
 {
 	libthinkfinger_state tf_state = TF_STATE_VERIFY_FAILED;
-	char bir_file[MAX_PATH];
 	int retry = 20;
-
-	snprintf (bir_file, MAX_PATH, "%s/%s.bir", PAM_BIRDIR, pam_thinkfinger->user);
 
 	if (pam_thinkfinger->tf == NULL)
 		goto out;
 
-	libthinkfinger_set_file (pam_thinkfinger->tf, bir_file);
+	libthinkfinger_set_file (pam_thinkfinger->tf, pam_thinkfinger->bir_file);
 	/* if the USB device is being removed while verification (e.g. suspend) retry */
 	while ((tf_state = libthinkfinger_verify (pam_thinkfinger->tf)) == TF_RESULT_USB_ERROR && --retry > 0)
 		usleep (250000);
