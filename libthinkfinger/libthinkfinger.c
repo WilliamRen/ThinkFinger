@@ -141,7 +141,7 @@ struct libthinkfinger_s {
 	struct sigaction sigint_action;
 	struct sigaction sigint_action_old;
 	struct usb_dev_handle *usb_dev_handle;
-	const char *file;
+	char *file;
 	int fd;
 
 	pthread_mutex_t usb_deinit_mutex;
@@ -840,7 +840,8 @@ int libthinkfinger_set_file (libthinkfinger *tf, const char *file)
 		goto out;
 	}
 
-	tf->file = file;
+	free (tf->file);
+	tf->file = strdup (file);
 	retval = 0;
 out:
 	return retval;
@@ -904,6 +905,8 @@ void libthinkfinger_free (libthinkfinger *tf)
 	}
 
 	_libthinkfinger_usb_deinit (tf);
+
+	free (tf->file);
 
 	if (tf->fd)
 		close (tf->fd);
