@@ -174,14 +174,13 @@ static void thinkfinger_thread (void *data)
 		pam_thinkfinger->swipe_retval = PAM_AUTH_ERR;
 		pam_thinkfinger_log (pam_thinkfinger, LOG_NOTICE,
 				     "User '%s' verification failed (0x%x).", pam_thinkfinger->user, tf_state);
-		goto out;
 	}
 
 	ret = uinput_cr (&pam_thinkfinger->uinput_fd);
 	if (ret != 0)
 		pam_thinkfinger_log (pam_thinkfinger, LOG_ERR,
 				     "Could not send carriage return via uinput: %s.", strerror (ret));
-out:
+
 	pam_thinkfinger_log (pam_thinkfinger, LOG_NOTICE,
 			     "%s returning '%d': %s.", __FUNCTION__, pam_thinkfinger->swipe_retval,
 			     pam_thinkfinger->swipe_retval ? pam_strerror (pam_thinkfinger->pamh, pam_thinkfinger->swipe_retval) : "success");
