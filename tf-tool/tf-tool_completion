@@ -1,0 +1,37 @@
+### -*- mode: shell-script -*-
+
+### Programmed completion for bash to use tf-tool
+### Copyright (C) 2007  Rafael Laboissiere <rafael AT debian org>
+
+### This file is licensed under the GNU General Public License, version 2
+### or later.  No warranties.
+
+have tf-tool &&
+_tf_tool() {
+    local cur prev xor_opts opts
+
+    xor_opts='--acquire --verify'
+    opts="$xor_opts --verbose"
+
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD-1]}
+
+    for (( i=0; i < ${#COMP_WORDS[@]}-1; i++ )); do
+        ## exclude mutually exclusive options
+        [[ ${COMP_WORDS[i]} == --@(acquire|verify) ]] \
+	    && opts=${opts/$xor_opts}
+        ## --verbose can be given along the other options
+        [[ ${COMP_WORDS[i]} == --verbose ]] && opts=${opts/--verbose}
+    done
+
+    case "$prev" in
+	--@(add|verify)-user)
+            COMPREPLY=( $( compgen -u -- $cur ) )
+            return 0
+            ;;
+    esac
+
+    COMPREPLY=( $( compgen -W "$opts" -- $cur ) )
+
+} &&
+complete -F _tf_tool tf-tool
