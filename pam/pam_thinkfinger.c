@@ -238,6 +238,7 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 {
 	int ret;
 	int retval = PAM_AUTH_ERR;
+	const char *rhost = NULL;
 	pam_thinkfinger_s pam_thinkfinger;
 	struct termios term_attr;
 	libthinkfinger_init_status init_status;
@@ -251,6 +252,12 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 	pam_thinkfinger.isatty = isatty (STDIN_FILENO);
 	if (pam_thinkfinger.isatty == 1)
 		tcgetattr (STDIN_FILENO, &term_attr);
+
+	pam_get_item (pamh, PAM_RHOST, (const void **)( const void*) &rhost);
+	if (rhost != NULL && strlen (rhost) > 0) {
+		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "Error: Remote login from host \"%s\" detected.", rhost);
+		goto out;
+	}
 
 	if ((retval = pam_get_user(pamh, &pam_thinkfinger.user, NULL)) != PAM_SUCCESS)
 		goto out;
