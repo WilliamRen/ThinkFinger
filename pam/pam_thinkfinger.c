@@ -253,7 +253,8 @@ int pam_sm_authenticate (pam_handle_t *pamh, int flags, int argc, const char **a
 	if (pam_thinkfinger.isatty == 1)
 		tcgetattr (STDIN_FILENO, &term_attr);
 
-	pam_get_user (pamh, &pam_thinkfinger.user, NULL);
+	if ((retval = pam_get_user(pamh, &pam_thinkfinger.user, NULL)) != PAM_SUCCESS)
+		goto out;
 	if (pam_thinkfinger_user_sanity_check (&pam_thinkfinger) || pam_thinkfinger_user_bir_check (&pam_thinkfinger) < 0) {
 		pam_thinkfinger_log (&pam_thinkfinger, LOG_ERR, "User '%s' is unknown.", pam_thinkfinger.user);
 		retval = PAM_USER_UNKNOWN;
