@@ -36,15 +36,10 @@
 #define MAX_USER       32
 #define MAX_PATH       256
 
-#define DEFAULT_BIR_PATH "/tmp/test.bir"
 #define BIR_EXTENSION    ".bir"
 #define BANNER           "\n"PACKAGE_STRING " ("PACKAGE_BUGREPORT")\n" "Copyright (C) 2006, 2007 Timo Hoenig <thoenig@suse.de>\n"
 
-#if BUILD_PAM
-const char* usage_string = "[--acquire | --verify | --add-user <login> | --verify-user <login> ] [--verbose]";
-#else
-const char* usage_string = "[--acquire | --verify] [--verbose]";
-#endif
+const char* usage_string = "[--acquire | --verify] [--verbose] [bir_file]\n  where --verbose and bir_file are optional.\n\n  --verbose defaults to unspecified\n    bir_file defaults to ~/.thinkfinger.bir.\n";
 
 typedef struct {
 	int mode;
@@ -152,25 +147,6 @@ static void callback (libthinkfinger_state state, void *data)
 static void usage (char *name)
 {
 	printf ("Usage: %s %s\n", basename (name), usage_string);
-}
-
-static int user_sanity_check (const char *user)
-{
-	size_t len = strlen(user);
-	return strstr(user, "../") || user[0] == '-' || user[len - 1] == '/';
-}
-
-static _Bool user_exists (const char* login)
-{
-	_Bool retval = false;
-
-	struct passwd *p  = getpwnam (login);
-	if (p == NULL)
-		retval = false;
-	else
-		retval = true;
-
-	return retval;
 }
 
 static void raise_error (libthinkfinger_init_status init_status) {
@@ -324,10 +300,8 @@ main (int argc, char *argv[])
 	int i;
 	int retval = 0;
 	s_tfdata tfdata;
-#if BUILD_PAM
-	int path_len = 0;
-	const char *user;
-#endif
+	int user_bir_file = 0;
+	unsigned int path_len;
 
 	printf ("%s\n", BANNER);
 
@@ -345,104 +319,45 @@ main (int argc, char *argv[])
 	for (i = 1; i < argc; i++) {
 		char *arg = argv[i];
 		if (!strcmp (arg, "--acquire")) {
+			char *home = getenv ("HOME");
+			if (home == NULL) {
+				printf ("Could not determine home directory of current user.\n");
+				retval = -1;
+				goto out;
+			}
+
+
 			if (tfdata.mode != MODE_UNDEFINED) {
 				printf ("Mode already set.\n");
 				usage (argv [0]);
 				retval = -1;
 				goto out;
 			}
-			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
+
+			path_len = strlen (home) + strlen ("/.thinkfinger") + strlen (BIR_EXTENSION);
+			if (path_len > MAX_PATH-1) {
+				printf ("Path \"%s/.thinkfinger%s\" is too long (maximum %i chars).\n", home, BIR_EXTENSION, MAX_PATH-1);
+				retval = -1;
+				goto out;
+			}
+			snprintf (tfdata.bir, MAX_PATH-1, "%s/.thinkfinger%s", home, BIR_EXTENSION);
 			tfdata.mode = MODE_ACQUIRE;
 		} else if (!strcmp (arg, "--verify")) {
-			if (tfdata.mode != MODE_UNDEFINED) {
-				printf ("Mode already set.\n");
-				usage (argv [0]);
+			char *home = getenv ("HOME");
+			if (home == NULL) {
+				printf ("Could not determine home directory of current user.\n");
 				retval = -1;
 				goto out;
 			}
-			if (access (DEFAULT_BIR_PATH, R_OK) != 0) {
-				perror ("Could not access " DEFAULT_BIR_PATH);
-				retval = -1;
-				goto out;
-			}
-			snprintf (tfdata.bir, MAX_PATH-1, "%s", DEFAULT_BIR_PATH);
-			tfdata.mode = MODE_VERIFY;
-#if BUILD_PAM
-		} else if (!strcmp (arg, "--add-user")) {
-			if (tfdata.mode != MODE_UNDEFINED) {
-				printf ("Mode already set.\n");
-				usage (argv [0]);
-				retval = -1;
-				goto out;
-			}
-			if (++i == argc) {
-				printf ("User missing.\n");
-				usage (argv [0]);
-				retval = -1;
-				goto out;
-			}
-			user = argv[i];
-			if (strlen (user) > MAX_USER) {
-				printf ("User name \"%s\" is too long (maximum %i chars).\n", user, MAX_USER);
-				retval = -1;
-				goto out;
-			}
-			if (user_sanity_check (user) || user_exists (user) == false ) {
-				printf ("The user \"%s\" does not exist.\n", user);
-				retval = -1;
-				goto out;
-			}
-			if (access (PAM_BIRDIR, R_OK|W_OK|X_OK) != 0) {
-				perror ("Could not access " PAM_BIRDIR);
-				retval = -1;
-				goto out;
-			}
-			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user) + strlen (BIR_EXTENSION);
+
+			path_len = strlen (home) + strlen ("/.thinkfinger") + strlen (BIR_EXTENSION);
 			if (path_len > MAX_PATH-1) {
-				printf ("Path \"%s/%s%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, BIR_EXTENSION, MAX_PATH-1);
+				printf ("Path \"%s/.thinkfinger%s\" is too long (maximum %i chars).\n", home, BIR_EXTENSION, MAX_PATH-1);
 				retval = -1;
 				goto out;
 			}
-			snprintf (tfdata.bir, MAX_PATH-1, "%s/%s%s", PAM_BIRDIR, user, BIR_EXTENSION);
-			tfdata.mode = MODE_ACQUIRE;
-		} else if (!strcmp (arg, "--verify-user")) {
-			if (tfdata.mode != MODE_UNDEFINED) {
-				printf ("Mode already set.\n");
-				usage (argv [0]);
-				retval = -1;
-				goto out;
-			}
-			if (++i == argc) {
-				printf ("User missing.\n");
-				usage (argv [0]);
-				retval = -1;
-				goto out;
-			}
-			user = argv[i];
-			if (strlen (user) > MAX_USER) {
-				printf ("User name \"%s\" is too long (maximum %i chars).\n", user, MAX_USER);
-				retval = -1;
-				goto out;
-			}
-			if (user_sanity_check (user) || user_exists (user) == false ) {
-				printf ("The user \"%s\" does not exist.\n", user);
-				retval = -1;
-				goto out;
-			}
-			if (access (PAM_BIRDIR, R_OK|W_OK|X_OK) != 0) {
-				perror ("Could not access " PAM_BIRDIR);
-				retval = -1;
-				goto out;
-			}
-			path_len = strlen (PAM_BIRDIR) + strlen ("/") + strlen (user) + strlen (BIR_EXTENSION);
-			if (path_len > MAX_PATH-1) {
-				printf ("Path \"%s/%s%s\" is too long (maximum %i chars).\n", PAM_BIRDIR, user, BIR_EXTENSION, MAX_PATH-1);
-				retval = -1;
-				goto out;
-			}
-			snprintf (tfdata.bir, MAX_PATH-1, "%s/%s%s", PAM_BIRDIR, user, BIR_EXTENSION);
+			snprintf (tfdata.bir, MAX_PATH-1, "%s/.thinkfinger%s", home, BIR_EXTENSION);
 			tfdata.mode = MODE_VERIFY;
-#endif
 		} else if (!strcmp (arg, "--verbose")) {
 			printf ("Running in verbose mode.\n");
 			tfdata.verbose = true;
@@ -451,10 +366,21 @@ main (int argc, char *argv[])
 			retval = 0;
 			goto out;
 		} else {
-			printf ("Unknown option \"%s\".\n", arg);
-			usage (argv [0]);
-			retval = -1;
-			goto out;
+			path_len = strlen (arg);
+			if (path_len > MAX_PATH-1) {
+				printf ("Path \"%s\" is too long (maximum %i chars).\n", arg, MAX_PATH-1);
+				retval = -1;
+				goto out;
+			}
+
+			if (user_bir_file) {
+				printf ("Two output paths specified, but you may only specify one:\n  %s\n  %s\n", tfdata.bir, arg);
+				retval = -1;
+				goto out;
+			}
+
+			snprintf (tfdata.bir, MAX_PATH-1, "%s", arg);
+			user_bir_file = 1;
 		}
 	}
 
