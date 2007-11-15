@@ -803,6 +803,12 @@ static void _libthinkfinger_acquire_run (libthinkfinger *tf)
 	_libthinkfinger_ask_scanner_raw (tf, SILENT, enroll_init, DEFAULT_BULK_SIZE, sizeof(enroll_init));
 	_libthinkfinger_scan (tf);
 
+	if (tf->state != TF_STATE_ACQUIRE_SUCCESS) {
+		if (unlink (tf->file) < 0) {
+			fprintf (stderr, "Error while unlinking \"%s\" after failed acquisition: %s.\n", tf->file, strerror (errno));
+		}
+	}
+
 	if (close (tf->fd) == 0)
 		tf->fd = 0;
 out:
