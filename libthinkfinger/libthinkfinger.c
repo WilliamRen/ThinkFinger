@@ -254,7 +254,7 @@ static void usb_dump (const char *func, unsigned char *bytes, int req_size, int 
 		}
 		fprintf (stderr, "\n");
 	} else
-		fprintf (stderr, "Error: %s (%i)\n", func, size);
+		fprintf (stderr, "Error: %s (%i, %s)\n", func, size, usb_strerror ());
 
 	return;
 }
@@ -381,15 +381,31 @@ static void _libthinkfinger_usb_deinit (libthinkfinger *tf)
 {
 	int usb_retval;
 
+#ifdef USB_DEBUG
+fprintf (stderr, "USB deinitialization...\n");
+#endif
+
 	_libthinkfinger_usb_deinit_lock (tf);
 	if (tf->usb_dev_handle == NULL) {
+#ifdef USB_DEBUG
+		fprintf (stderr, "No USB handle.\n");
+#endif
+
 		goto out;
 	}
 
 	while (_libthinkfinger_task_running (tf) == true) {
+#ifdef USB_DEBUG
+		fprintf (stderr, "USB task running...waiting.\n");
+#endif
+
 		termination_request = 0x00;
 		usleep (50000);
 	}
+
+#ifdef USB_DEBUG
+	fprintf (stderr, "sending deinitialization sequence.\n");
+#endif
 
 	usb_retval = _libthinkfinger_usb_write (tf, deinit, sizeof(deinit));
 	if (usb_retval < 0 && usb_retval != -ETIMEDOUT)
@@ -402,6 +418,10 @@ usb_close:
 	tf->usb_dev_handle = NULL;
 out:
 	_libthinkfinger_usb_deinit_unlock (tf);
+
+#ifdef USB_DEBUG
+fprintf (stderr, "USB deinitialization finished.\n");
+#endif
 	return;
 }
 
@@ -409,6 +429,10 @@ static libthinkfinger_init_status _libthinkfinger_usb_init (libthinkfinger *tf)
 {
 	libthinkfinger_init_status retval = TF_INIT_UNDEFINED;
 	struct usb_device *usb_dev;
+
+#ifdef USB_DEBUG
+	fprintf (stderr, "USB initialization...\n");
+#endif
 
 	usb_dev = _libthinkfinger_usb_device_find ();
 	if (usb_dev == NULL) {
@@ -443,6 +467,10 @@ static libthinkfinger_init_status _libthinkfinger_usb_init (libthinkfinger *tf)
 		retval = TF_INIT_USB_HELLO_FAILED;
 		goto out;
 	}
+
+#ifdef USB_DEBUG
+	fprintf (stderr, "USB initialization successful.\n");
+#endif
 
 	retval = TF_INIT_USB_INIT_SUCCESS;
 out:
@@ -722,7 +750,7 @@ static void _libthinkfinger_verify_run (libthinkfinger *tf)
 
 	tf->fd = open (tf->file, O_RDONLY | O_NOFOLLOW);
 	if (tf->fd < 0) {
-		fprintf (stderr, "Error: %s.\n", strerror (errno));
+		fprintf (stderr, "Error while opening \"%s\": %s.\n", tf->file, strerror (errno));
 		_libthinkfinger_usb_flush (tf);
 		tf->state = TF_STATE_OPEN_FAILED;
 		goto out;
@@ -765,7 +793,7 @@ static void _libthinkfinger_acquire_run (libthinkfinger *tf)
 {
 	tf->fd = open (tf->file, O_RDWR | O_CREAT | O_NOFOLLOW, 0600);
 	if (tf->fd < 0) {
-		fprintf (stderr, "Error: %s.\n", strerror (errno));
+		fprintf (stderr, "Error while opening \"%s\": %s.\n", tf->file, strerror (errno));
 		_libthinkfinger_usb_flush (tf);
 		tf->state = TF_STATE_OPEN_FAILED;
 		goto out;
